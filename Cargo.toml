@@ -1,0 +1,15 @@
+workspace = { members = ["jolt-sys"] }
+[package]
+name = "jolt"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bitflags = "2.4.1"
+glam = { version = "0.25.0", features = ["mint"] }
+jolt-sys = { path = "./jolt-sys" }
+
+[dev-dependencies]
+num_cpus = "1.16.0"
