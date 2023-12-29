@@ -1,10 +1,8 @@
-use crate::ShapeRef;
+use crate::{MotionQuality, MotionType, ObjectLayer, ShapeRef};
 use glam::{Quat, Vec3A};
 use jolt_sys::{
-    JPC_CollisionGroup, JPC_EMotionQuality_JPC_MOTION_QUALITY_DISCRETE,
-    JPC_EMotionType_JPC_MOTION_TYPE_DYNAMIC,
-    JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA, JPC_MassProperties,
-    JPC_MotionQuality, JPC_MotionType, JPC_ObjectLayer, JPC_OverrideMassProperties,
+    JPC_CollisionGroup, JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA,
+    JPC_MassProperties, JPC_ObjectLayer, JPC_OverrideMassProperties,
     JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
 };
 use std::ptr::null;
@@ -18,13 +16,13 @@ pub struct BodyCreationSettings {
     pub linear_velocity: Vec3A,
     pub angular_velocity: Vec3A,
     pub user_data: u64,
-    pub object_layer: JPC_ObjectLayer,
+    pub object_layer: ObjectLayer,
     pub collision_group: JPC_CollisionGroup,
-    pub motion_type: JPC_MotionType,
+    pub motion_type: MotionType,
     pub allow_dynamic_or_kinematic: bool,
     pub is_sensor: bool,
     pub use_manifold_reduction: bool,
-    pub motion_quality: JPC_MotionQuality,
+    pub motion_quality: MotionQuality,
     pub allow_sleeping: bool,
     pub friction: f32,
     pub restitution: f32,
@@ -46,7 +44,7 @@ impl BodyCreationSettings {
         shape: ShapeRef,
         position: Vec3A,
         rotation: Quat,
-        motion_type: JPC_MotionType,
+        motion_type: MotionType,
         object_layer: JPC_ObjectLayer,
     ) -> BodyCreationSettings {
         Self {
@@ -78,11 +76,11 @@ impl Default for BodyCreationSettings {
                 group_id: JPC_COLLISION_GROUP_INVALID_GROUP,
                 sub_group_id: JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
             },
-            motion_type: JPC_EMotionType_JPC_MOTION_TYPE_DYNAMIC as _,
+            motion_type: MotionType::Dynamic,
             allow_dynamic_or_kinematic: false,
             is_sensor: false,
             use_manifold_reduction: true,
-            motion_quality: JPC_EMotionQuality_JPC_MOTION_QUALITY_DISCRETE as _,
+            motion_quality: MotionQuality::Discrete,
             allow_sleeping: true,
             friction: 0.2,
             restitution: 0.0,

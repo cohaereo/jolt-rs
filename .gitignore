@@ -1,3 +1,5 @@
 /target
 
 **/.idea
+
+jolt-sys/cmake-build-*

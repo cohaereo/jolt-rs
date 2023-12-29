@@ -1,9 +1,8 @@
 use glam::{vec3, vec3a, Quat, Vec3};
-use jolt::{BodyCreationSettings, BoxShapeSettings, ContactListener, ShapeSettings, SphereShape};
+use jolt::ShapeSettings;
 use jolt_sys::{
-    JPC_Activation_JPC_ACTIVATION_ACTIVATE, JPC_Activation_JPC_ACTIVATION_DONT_ACTIVATE, JPC_Body,
-    JPC_BodyID, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings,
-    JPC_EMotionType_JPC_MOTION_TYPE_DYNAMIC, JPC_SubShapeIDPair,
+    JPC_Body, JPC_BodyID, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings,
+    JPC_SubShapeIDPair,
 };
 
 const OLAYER_NON_MOVING: jolt::ObjectLayer = 0;
@@ -49,7 +48,7 @@ impl jolt::BroadPhaseLayerInterface for BpLayerInterfaceImpl {
 }
 
 pub struct MyContactListener;
-impl ContactListener for MyContactListener {
+impl jolt::ContactListener for MyContactListener {
     fn on_contact_validate(
         &self,
         _body1: *const JPC_Body,
@@ -160,7 +159,7 @@ fn main() {
     // Next we can create a rigid body to serve as the floor, we make a large box
     // Create the settings for the collision volume (the shape).
     // Note that for simple shapes (like boxes) you can also directly construct a BoxShape.
-    let floor_shape_settings = BoxShapeSettings::create(Vec3::new(100.0, 1.0, 100.0));
+    let floor_shape_settings = jolt::BoxShapeSettings::create(Vec3::new(100.0, 1.0, 100.0));
 
     // Create the shape
     let floor_shape = floor_shape_settings
@@ -168,11 +167,11 @@ fn main() {
         .expect("Failed to create floor shape");
 
     // Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
-    let floor_settings = BodyCreationSettings::new(
+    let floor_settings = jolt::BodyCreationSettings::new(
         floor_shape,
         vec3a(0.0, -1.0, 0.0),
         glam::Quat::IDENTITY,
-        jolt_sys::JPC_EMotionType_JPC_MOTION_TYPE_STATIC as _,
+        jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
 
@@ -182,22 +181,19 @@ fn main() {
         .expect("Failed to create body"); // Note that if we run out of bodies this can return None
 
     // Add it to the world
-    body_interface.add_body(
-        unsafe { (*floor).id },
-        JPC_Activation_JPC_ACTIVATION_DONT_ACTIVATE,
-    );
+    body_interface.add_body(unsafe { (*floor).id }, jolt::Activation::DontActivate);
 
     // Now create a dynamic body to bounce on the floor
     // Note that this uses the shorthand version of creating and adding a body to the world
-    let sphere_settings = BodyCreationSettings::new(
-        SphereShape::create(0.5),
+    let sphere_settings = jolt::BodyCreationSettings::new(
+        jolt::SphereShape::create(0.5),
         vec3a(0.0, 2.0, 0.0),
         Quat::IDENTITY,
-        JPC_EMotionType_JPC_MOTION_TYPE_DYNAMIC as _,
+        jolt::MotionType::Dynamic,
         OLAYER_MOVING,
     );
-    let sphere_id = body_interface
-        .create_and_add_body(&sphere_settings, JPC_Activation_JPC_ACTIVATION_ACTIVATE);
+    let sphere_id =
+        body_interface.create_and_add_body(&sphere_settings, jolt::Activation::Activate);
 
     // Now you can interact with the dynamic body, in this case we're going to give it a velocity.
     // (note that if we had used CreateBody then we could have set the velocity straight on the body before adding it to the physics system)

@@ -1,6 +1,6 @@
-use crate::BodyCreationSettings;
+use crate::{Activation, BodyCreationSettings};
 use glam::Vec3;
-use jolt_sys::{JPC_Activation, JPC_Body, JPC_BodyID, JPC_MotionType, JPC_ObjectLayer};
+use jolt_sys::{JPC_Body, JPC_BodyID, JPC_MotionType, JPC_ObjectLayer};
 
 pub struct BodyInterface(*mut jolt_sys::JPC_BodyInterface);
 
@@ -47,9 +47,9 @@ impl BodyInterface {
         }
     }
 
-    pub fn add_body(&self, body_id: JPC_BodyID, activation: JPC_Activation) {
+    pub fn add_body(&self, body_id: JPC_BodyID, activation: Activation) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddBody(self.0, body_id, activation);
+            jolt_sys::JPC_BodyInterface_AddBody(self.0, body_id, activation as _);
         }
     }
 
@@ -62,10 +62,14 @@ impl BodyInterface {
     pub fn create_and_add_body(
         &self,
         body_settings: &BodyCreationSettings,
-        activation: JPC_Activation,
+        activation: Activation,
     ) -> JPC_BodyID {
         unsafe {
-            jolt_sys::JPC_BodyInterface_CreateAndAddBody(self.0, body_settings.as_jpc(), activation)
+            jolt_sys::JPC_BodyInterface_CreateAndAddBody(
+                self.0,
+                body_settings.as_jpc(),
+                activation as _,
+            )
         }
     }
 
@@ -194,13 +198,13 @@ impl BodyInterface {
         }
     }
 
-    pub fn set_position(&self, body_id: JPC_BodyID, position: Vec3, activation: JPC_Activation) {
+    pub fn set_position(&self, body_id: JPC_BodyID, position: Vec3, activation: Activation) {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetPosition(
                 self.0,
                 body_id,
                 position.as_ref().as_ptr(),
-                activation,
+                activation as _,
             );
         }
     }
@@ -229,18 +233,13 @@ impl BodyInterface {
         }
     }
 
-    pub fn set_rotation(
-        &self,
-        body_id: JPC_BodyID,
-        rotation: glam::Quat,
-        activation: JPC_Activation,
-    ) {
+    pub fn set_rotation(&self, body_id: JPC_BodyID, rotation: glam::Quat, activation: Activation) {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetRotation(
                 self.0,
                 body_id,
                 rotation.as_ref().as_ptr(),
-                activation,
+                activation as _,
             );
         }
     }
@@ -346,10 +345,15 @@ impl BodyInterface {
         &self,
         body_id: JPC_BodyID,
         motion_type: JPC_MotionType,
-        activation: JPC_Activation,
+        activation: Activation,
     ) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_SetMotionType(self.0, body_id, motion_type, activation);
+            jolt_sys::JPC_BodyInterface_SetMotionType(
+                self.0,
+                body_id,
+                motion_type,
+                activation as _,
+            );
         }
     }
 
