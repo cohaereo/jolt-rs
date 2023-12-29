@@ -7,5 +7,5 @@ authors = ["cohaereo <cohaereo@protonmail.com>"]
 [dependencies]
 glam = "0.25.0"
 jolt = { path = ".." }
-three-d = "0.16.3"
+three-d = { version = "0.16.3", features = ["egui-gui"] }
 rand = "0.8.5"

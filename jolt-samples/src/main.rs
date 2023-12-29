@@ -1,4 +1,3 @@
-use jolt::ShapeSettings;
 use rand::random;
 use std::num::NonZeroUsize;
 use three_d::*;
@@ -7,6 +6,10 @@ pub fn main() {
     let window = Window::new(WindowSettings {
         title: "Jolt Samples".to_string(),
         max_size: Some((1280, 720)),
+        surface_settings: SurfaceSettings {
+            vsync: false,
+            ..Default::default()
+        },
         ..Default::default()
     })
     .unwrap();
@@ -31,7 +34,7 @@ pub fn main() {
     let object_vs_object_layer_filter = OLayerPairInterfaceImpl;
 
     let physics_system = jolt::PhysicsSystem::create(
-        1024,
+        10240,
         0,
         65536,
         10240,
@@ -46,8 +49,8 @@ pub fn main() {
 
     let mut camera = Camera::new_perspective(
         window.viewport(),
-        vec3(0.0, 15.0, 15.0),
-        vec3(0.0, 0.0, 0.0),
+        vec3(25.0, 25.0, 25.0),
+        vec3(0.0, 8.0, 0.0),
         vec3(0.0, 1.0, 0.0),
         degrees(60.0),
         0.1,
@@ -55,98 +58,173 @@ pub fn main() {
     );
     let mut control = FlyControl::new(0.1);
 
-    // sphere.set_transformation(Mat4::from_translation(vec3(0.0, 1.3, 0.0)) * Mat4::from_scale(0.2));
-    let mut spheres = vec![];
-    for i in 0..10 {
-        let mut sphere = Gm::new(
-            Mesh::new(&context, &CpuMesh::sphere(16)),
-            PhysicalMaterial::new_opaque(
-                &context,
-                &CpuMaterial {
-                    albedo: Srgba {
-                        r: 255,
-                        g: 0,
-                        b: 0,
-                        a: 255,
-                    },
-                    ..Default::default()
-                },
-            ),
-        );
+    const WALL_OFFSET: f32 = 8.0;
+    const WALL_THICKNESS: f32 = 4.0;
 
-        let deviation_x = (random::<f32>() * 0.5 + 0.5) * 0.01;
-        let deviation_y = (random::<f32>() * 0.5 + 0.5) * 0.01;
-
-        let sphere_settings = jolt::BodyCreationSettings::new(
-            jolt::SphereShape::create(1.0),
-            glam::vec3a(deviation_x, 2.0 + (i as f32 * 3.0), deviation_y),
-            glam::Quat::IDENTITY,
-            jolt::MotionType::Dynamic,
-            OLAYER_MOVING,
-        );
-        let sphere_id =
-            body_interface.create_and_add_body(&sphere_settings, jolt::Activation::Activate);
-
-        spheres.push((sphere, sphere_id));
-    }
-
-    let floor_shape_settings = jolt::BoxShapeSettings::create(glam::Vec3::new(100.0, 1.0, 100.0));
-
-    // Create the shape
-    let floor_shape = floor_shape_settings
-        .create_shape()
-        .expect("Failed to create floor shape");
-
+    // Bottom plane
     let floor_settings = jolt::BodyCreationSettings::new(
-        floor_shape,
+        jolt::BoxShape::create(glam::Vec3::new(100.0, WALL_THICKNESS, 100.0)),
         glam::vec3a(0.0, -1.0, 0.0),
         glam::Quat::IDENTITY,
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
 
-    // Create the actual rigid body
-    let floor = body_interface
-        .create_body(&floor_settings)
-        .expect("Failed to create body"); // Note that if we run out of bodies this can return None
+    body_interface.create_and_add_body(&floor_settings, jolt::Activation::DontActivate);
 
-    // Add it to the world
-    body_interface.add_body(unsafe { (*floor).id }, jolt::Activation::DontActivate);
+    // Left plane
+    let floor_settings = jolt::BodyCreationSettings::new(
+        jolt::BoxShape::create(glam::Vec3::new(WALL_THICKNESS, 100.0, 100.0)),
+        glam::vec3a(-WALL_OFFSET, 0.0, 0.0),
+        glam::Quat::IDENTITY,
+        jolt::MotionType::Static,
+        OLAYER_NON_MOVING,
+    );
+
+    body_interface.create_and_add_body(&floor_settings, jolt::Activation::DontActivate);
+
+    // Right plane
+    let floor_settings = jolt::BodyCreationSettings::new(
+        jolt::BoxShape::create(glam::Vec3::new(WALL_THICKNESS, 100.0, 100.0)),
+        glam::vec3a(WALL_OFFSET, 0.0, 0.0),
+        glam::Quat::IDENTITY,
+        jolt::MotionType::Static,
+        OLAYER_NON_MOVING,
+    );
+
+    body_interface.create_and_add_body(&floor_settings, jolt::Activation::DontActivate);
+
+    // Front plane
+    let floor_settings = jolt::BodyCreationSettings::new(
+        jolt::BoxShape::create(glam::Vec3::new(100.0, 100.0, WALL_THICKNESS)),
+        glam::vec3a(0.0, 0.0, -WALL_OFFSET),
+        glam::Quat::IDENTITY,
+        jolt::MotionType::Static,
+        OLAYER_NON_MOVING,
+    );
+
+    body_interface.create_and_add_body(&floor_settings, jolt::Activation::DontActivate);
+
+    // Back plane
+    let floor_settings = jolt::BodyCreationSettings::new(
+        jolt::BoxShape::create(glam::Vec3::new(100.0, 100.0, WALL_THICKNESS)),
+        glam::vec3a(0.0, 0.0, WALL_OFFSET),
+        glam::Quat::IDENTITY,
+        jolt::MotionType::Static,
+        OLAYER_NON_MOVING,
+    );
+
+    body_interface.create_and_add_body(&floor_settings, jolt::Activation::DontActivate);
 
     let light0 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, -0.5, -0.5));
     let light1 = DirectionalLight::new(&context, 1.0, Srgba::WHITE, &vec3(0.0, 0.5, 0.5));
 
+    let mut instanced_mesh = Gm::new(
+        InstancedMesh::new(&context, &Instances::default(), &CpuMesh::sphere(16)),
+        PhysicalMaterial::new(
+            &context,
+            &CpuMaterial {
+                albedo: Srgba {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                },
+                ..Default::default()
+            },
+        ),
+    );
+
+    let mut spheres = vec![];
+    let mut sphere_quota = 2600;
+
+    let mut collision_steps = 3;
+
+    let mut gui = GUI::new(&context);
     window.render_loop(move |mut frame_input| {
+        if sphere_quota > 0 {
+            for _ in 0..8 {
+                let deviation_x = random::<f32>() * 0.5 + 0.5;
+                let deviation_y = random::<f32>() * 0.5 + 0.5;
+
+                let sphere_settings = jolt::BodyCreationSettings::new(
+                    jolt::SphereShape::create(0.25),
+                    glam::vec3a(deviation_x, 20.0, deviation_y),
+                    glam::Quat::IDENTITY,
+                    jolt::MotionType::Dynamic,
+                    OLAYER_MOVING,
+                );
+                let sphere_id = body_interface
+                    .create_and_add_body(&sphere_settings, jolt::Activation::Activate);
+                body_interface.set_linear_velocity(sphere_id, glam::vec3(0.0, -10.0, 0.0));
+
+                spheres.push((sphere_id, (random::<[u8; 3]>())));
+
+                sphere_quota -= 1;
+            }
+
+            println!("Sphere quota: {}", sphere_quota);
+        }
+
         let delta_time = frame_input.elapsed_time / 1000.;
         physics_system.update(
             delta_time as f32,
-            1,
+            collision_steps,
             1,
             &mut temp_allocator,
             &mut job_system,
         );
 
+        let mut panel_width = 0.0;
+        gui.update(
+            &mut frame_input.events,
+            frame_input.accumulated_time,
+            frame_input.viewport,
+            frame_input.device_pixel_ratio,
+            |gui_context| {
+                use three_d::egui::*;
+                SidePanel::left("side_panel").show(gui_context, |ui| {
+                    ui.heading("Debug Panel");
+                    ui.label(format!("FPS: {:.1}", 1000.0 / frame_input.elapsed_time));
+                    ui.label(format!("Spheres: {}", spheres.len()));
+                    ui.label(format!("Remaining spheres: {}", sphere_quota));
+                    ui.separator();
+                    ui.add(Slider::new(&mut collision_steps, 1..=10).text("Collision steps"));
+                    ui.label("Collision steps determines the number of iterations dedicated to detecting and resolving collisions for a slider in the physics application.\nHigher values will result in more accurate collisions, but are also more computationally expensive.");
+                });
+                panel_width = gui_context.used_rect().width();
+            },
+        );
+
         camera.set_viewport(frame_input.viewport);
         control.handle_events(&mut camera, &mut frame_input.events);
 
-        for (sphere, sphere_id) in spheres.iter_mut() {
-            let position = body_interface.center_of_mass_position(*sphere_id);
-            let rotation = body_interface.rotation(*sphere_id);
-            sphere.set_transformation(
-                Mat4::from_translation(Vec3::from(position.to_array()))
-                    * Mat4::from(Quat::from(rotation.to_array()))
-                    * Mat4::from_scale(1.0),
-            );
-        }
+        instanced_mesh.set_instances(&Instances {
+            transformations: spheres
+                .iter()
+                .map(|(sphere_id, _)| {
+                    let position = body_interface.center_of_mass_position(*sphere_id);
+                    let rotation = body_interface.rotation(*sphere_id);
+                    Mat4::from_translation(Vec3::from(position.to_array()))
+                        * Mat4::from(Quat::from(rotation.to_array()))
+                        * Mat4::from_scale(0.25)
+                })
+                .collect::<Vec<_>>(),
+            colors: Some(
+                spheres
+                    .iter()
+                    .map(|(_, color)| Srgba::from(*color))
+                    .collect::<Vec<_>>(),
+            ),
+            ..Default::default()
+        });
 
         frame_input
             .screen()
             .clear(ClearState::color_and_depth(0.8, 0.8, 0.8, 1.0, 1.0))
-            .render(
-                &camera,
-                spheres.iter().map(|(s, _)| s).into_iter(),
-                &[&light0, &light1],
-            );
+            .render(&camera, instanced_mesh.into_iter(), &[&light0, &light1]);
+
+        frame_input.screen().write(|| gui.render());
 
         FrameOutput::default()
     });
