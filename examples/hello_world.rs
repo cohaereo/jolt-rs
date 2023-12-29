@@ -47,10 +47,10 @@ pub struct MyContactListener;
 impl jolt::ContactListener for MyContactListener {
     fn on_contact_validate(
         &self,
-        _body1: *const jolt::Body,
-        _body2: *const jolt::Body,
+        _body1: &jolt::Body,
+        _body2: &jolt::Body,
         _base_offset: Vec3,
-        _collision_result: *const jolt::CollideShapeResult,
+        _collision_result: &jolt::CollideShapeResult,
     ) -> jolt::ValidateResult {
         println!("Contact validate callback");
         jolt::ValidateResult::AcceptAllContactsForThisBodyPair
@@ -58,25 +58,25 @@ impl jolt::ContactListener for MyContactListener {
 
     fn on_contact_added(
         &self,
-        _body1: *const jolt::Body,
-        _body2: *const jolt::Body,
-        _manifold: *const jolt::ContactManifold,
-        _io_settings: *mut jolt::ContactSettings,
+        _body1: &jolt::Body,
+        _body2: &jolt::Body,
+        _manifold: &jolt::ContactManifold,
+        _io_settings: &mut jolt::ContactSettings,
     ) {
         println!("A contact was added");
     }
 
     fn on_contact_persisted(
         &self,
-        _body1: *const jolt::Body,
-        _body2: *const jolt::Body,
-        _manifold: *const jolt::ContactManifold,
-        _io_settings: *mut jolt::ContactSettings,
+        _body1: &jolt::Body,
+        _body2: &jolt::Body,
+        _manifold: &jolt::ContactManifold,
+        _io_settings: &mut jolt::ContactSettings,
     ) {
         println!("A contact was persisted");
     }
 
-    fn on_contact_removed(&self, _sub_shape_pair: *const jolt::SubShapeIDPair) {
+    fn on_contact_removed(&self, _sub_shape_pair: &jolt::SubShapeIDPair) {
         println!("A contact was removed");
     }
 }
@@ -166,7 +166,7 @@ fn main() {
     let floor_settings = jolt::BodyCreationSettings::new(
         floor_shape,
         vec3a(0.0, -1.0, 0.0),
-        glam::Quat::IDENTITY,
+        Quat::IDENTITY,
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );

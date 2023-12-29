@@ -1,10 +1,11 @@
+use crate::BodyId;
 use jolt_sys::JPC_BodyID;
 use std::ffi::c_void;
 
 // JPC_BodyActivationListenerVTable
 pub trait BodyActivationListener {
-    fn on_body_activated(&self, body_id: JPC_BodyID, user_data: u64);
-    fn on_body_deactivated(&self, body_id: JPC_BodyID, user_data: u64);
+    fn on_body_activated(&self, body_id: BodyId, user_data: u64);
+    fn on_body_deactivated(&self, body_id: BodyId, user_data: u64);
 }
 
 #[repr(C)]

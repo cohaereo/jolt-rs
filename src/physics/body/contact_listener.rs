@@ -1,3 +1,4 @@
+use crate::{Body, CollideShapeResult, ContactManifold, ContactSettings, SubShapeIDPair};
 use glam::Vec3;
 use jolt_sys::{
     JPC_Body, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings, JPC_Real,
@@ -23,29 +24,29 @@ pub enum ValidateResult {
 pub trait ContactListener {
     fn on_contact_validate(
         &self,
-        body1: *const JPC_Body,
-        body2: *const JPC_Body,
+        body1: &Body,
+        body2: &Body,
         base_offset: Vec3,
-        collision_result: *const JPC_CollideShapeResult,
+        collision_result: &CollideShapeResult,
     ) -> ValidateResult;
 
     fn on_contact_added(
         &self,
-        body1: *const JPC_Body,
-        body2: *const JPC_Body,
-        manifold: *const JPC_ContactManifold,
-        io_settings: *mut JPC_ContactSettings,
+        body1: &Body,
+        body2: &Body,
+        manifold: &ContactManifold,
+        io_settings: &mut ContactSettings,
     );
 
     fn on_contact_persisted(
         &self,
-        body1: *const JPC_Body,
-        body2: *const JPC_Body,
-        manifold: *const JPC_ContactManifold,
-        io_settings: *mut JPC_ContactSettings,
+        body1: &Body,
+        body2: &Body,
+        manifold: &ContactManifold,
+        io_settings: &mut ContactSettings,
     );
 
-    fn on_contact_removed(&self, sub_shape_pair: *const JPC_SubShapeIDPair);
+    fn on_contact_removed(&self, sub_shape_pair: &SubShapeIDPair);
 }
 
 #[repr(C)]
@@ -77,10 +78,10 @@ impl ContactListenerWrapper {
         in_collision_result: *const JPC_CollideShapeResult,
     ) -> JPC_ValidateResult {
         (*(wrapper as *const Self)).inner.on_contact_validate(
-            in_body1,
-            in_body2,
+            &*in_body1,
+            &*in_body2,
             *(in_base_offset as *const Vec3),
-            in_collision_result,
+            &*in_collision_result,
         ) as _
     }
 
@@ -92,10 +93,10 @@ impl ContactListenerWrapper {
         io_settings: *mut JPC_ContactSettings,
     ) {
         (*(wrapper as *const Self)).inner.on_contact_added(
-            in_body1,
-            in_body2,
-            in_manifold,
-            io_settings,
+            &*in_body1,
+            &*in_body2,
+            &*in_manifold,
+            &mut *io_settings,
         )
     }
 
@@ -107,10 +108,10 @@ impl ContactListenerWrapper {
         io_settings: *mut JPC_ContactSettings,
     ) {
         (*(wrapper as *const Self)).inner.on_contact_persisted(
-            in_body1,
-            in_body2,
-            in_manifold,
-            io_settings,
+            &*in_body1,
+            &*in_body2,
+            &*in_manifold,
+            &mut *io_settings,
         )
     }
 
@@ -120,6 +121,6 @@ impl ContactListenerWrapper {
     ) {
         (*(wrapper as *const Self))
             .inner
-            .on_contact_removed(in_sub_shape_pair)
+            .on_contact_removed(&*in_sub_shape_pair)
     }
 }
