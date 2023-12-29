@@ -1,0 +1,11 @@
+[package]
+name = "jolt-samples"
+version = "0.1.0"
+edition = "2021"
+authors = ["cohaereo <cohaereo@protonmail.com>"]
+
+[dependencies]
+glam = "0.25.0"
+jolt = { path = ".." }
+three-d = "0.16.3"
+rand = "0.8.5"
