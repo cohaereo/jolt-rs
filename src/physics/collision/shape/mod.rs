@@ -6,6 +6,8 @@ pub use r#box::*;
 pub use shape_settings::*;
 pub use sphere::*;
 
+pub type SubShapeIDPair = jolt_sys::JPC_SubShapeIDPair;
+
 #[derive(Copy, Clone)]
 pub struct ShapeRef(*mut jolt_sys::JPC_Shape);
 

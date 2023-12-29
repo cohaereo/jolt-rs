@@ -1,9 +1,5 @@
 use glam::{vec3, vec3a, Quat, Vec3};
 use jolt::ShapeSettings;
-use jolt_sys::{
-    JPC_Body, JPC_BodyID, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings,
-    JPC_SubShapeIDPair,
-};
 
 const OLAYER_NON_MOVING: jolt::ObjectLayer = 0;
 const OLAYER_MOVING: jolt::ObjectLayer = 1;
@@ -51,10 +47,10 @@ pub struct MyContactListener;
 impl jolt::ContactListener for MyContactListener {
     fn on_contact_validate(
         &self,
-        _body1: *const JPC_Body,
-        _body2: *const JPC_Body,
+        _body1: *const jolt::Body,
+        _body2: *const jolt::Body,
         _base_offset: Vec3,
-        _collision_result: *const JPC_CollideShapeResult,
+        _collision_result: *const jolt::CollideShapeResult,
     ) -> jolt::ValidateResult {
         println!("Contact validate callback");
         jolt::ValidateResult::AcceptAllContactsForThisBodyPair
@@ -62,36 +58,36 @@ impl jolt::ContactListener for MyContactListener {
 
     fn on_contact_added(
         &self,
-        _body1: *const JPC_Body,
-        _body2: *const JPC_Body,
-        _manifold: *const JPC_ContactManifold,
-        _io_settings: *mut JPC_ContactSettings,
+        _body1: *const jolt::Body,
+        _body2: *const jolt::Body,
+        _manifold: *const jolt::ContactManifold,
+        _io_settings: *mut jolt::ContactSettings,
     ) {
         println!("A contact was added");
     }
 
     fn on_contact_persisted(
         &self,
-        _body1: *const JPC_Body,
-        _body2: *const JPC_Body,
-        _manifold: *const JPC_ContactManifold,
-        _io_settings: *mut JPC_ContactSettings,
+        _body1: *const jolt::Body,
+        _body2: *const jolt::Body,
+        _manifold: *const jolt::ContactManifold,
+        _io_settings: *mut jolt::ContactSettings,
     ) {
         println!("A contact was persisted");
     }
 
-    fn on_contact_removed(&self, _sub_shape_pair: *const JPC_SubShapeIDPair) {
+    fn on_contact_removed(&self, _sub_shape_pair: *const jolt::SubShapeIDPair) {
         println!("A contact was removed");
     }
 }
 
 pub struct MyBodyActivationListener;
 impl jolt::BodyActivationListener for MyBodyActivationListener {
-    fn on_body_activated(&self, _body: JPC_BodyID, _user_data: u64) {
+    fn on_body_activated(&self, _body: jolt::BodyId, _user_data: u64) {
         println!("A body was activated");
     }
 
-    fn on_body_deactivated(&self, _body: JPC_BodyID, _user_data: u64) {
+    fn on_body_deactivated(&self, _body: jolt::BodyId, _user_data: u64) {
         println!("A body went to sleep");
     }
 }
