@@ -9,8 +9,9 @@ authors = ["cohaereo <cohaereo@protonmail.com>"]
 
 [dependencies]
 bitflags = "2.4.1"
-glam = { version = "0.25.0", features = ["mint"] }
+mint = "0.5.9"
 jolt-sys = { path = "./jolt-sys" }
 
 [dev-dependencies]
+glam = { version = "0.25.0", features = ["mint"] }
 num_cpus = "1.16.0"

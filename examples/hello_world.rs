@@ -49,7 +49,7 @@ impl jolt::ContactListener for MyContactListener {
         &self,
         _body1: &jolt::Body,
         _body2: &jolt::Body,
-        _base_offset: Vec3,
+        _base_offset: mint::Vector3<f32>,
         _collision_result: &jolt::CollideShapeResult,
     ) -> jolt::ValidateResult {
         println!("Contact validate callback");

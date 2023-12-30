@@ -644,6 +644,7 @@ dependencies = [
  "bitflags 2.4.1",
  "glam",
  "jolt-sys",
+ "mint",
  "num_cpus",
 ]
 
@@ -651,7 +652,6 @@ dependencies = [
 name = "jolt-samples"
 version = "0.1.0"
 dependencies = [
- "glam",
  "jolt",
  "rand",
  "three-d",

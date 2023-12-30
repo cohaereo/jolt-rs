@@ -1,20 +1,20 @@
 use crate::{MotionQuality, MotionType, ObjectLayer, ShapeRef};
-use glam::{Quat, Vec3A};
 use jolt_sys::{
     JPC_CollisionGroup, JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA,
     JPC_MassProperties, JPC_ObjectLayer, JPC_OverrideMassProperties,
     JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
 };
+use mint::{Point3, Quaternion};
 use std::ptr::null;
 
 #[repr(C)]
 #[repr(align(16))]
 #[derive(Copy, Clone)]
 pub struct BodyCreationSettings {
-    pub position: Vec3A,
-    pub rotation: Quat,
-    pub linear_velocity: Vec3A,
-    pub angular_velocity: Vec3A,
+    pub position: [f32; 4],
+    pub rotation: [f32; 4],
+    pub linear_velocity: [f32; 4],
+    pub angular_velocity: [f32; 4],
     pub user_data: u64,
     pub object_layer: ObjectLayer,
     pub collision_group: JPC_CollisionGroup,
@@ -39,18 +39,33 @@ pub struct BodyCreationSettings {
     pub shape: ShapeRef,
 }
 
+#[test]
+#[allow(non_snake_case)]
+fn test_layout_BodyCreationSettings() {
+    assert_eq!(
+        ::std::mem::size_of::<BodyCreationSettings>(),
+        240usize,
+        concat!("Size of: ", stringify!(JPC_BodyCreationSettings))
+    );
+}
+
 impl BodyCreationSettings {
-    pub fn new(
+    pub fn new<P, R>(
         shape: ShapeRef,
-        position: Vec3A,
-        rotation: Quat,
+        position: P,
+        rotation: R,
         motion_type: MotionType,
         object_layer: JPC_ObjectLayer,
-    ) -> BodyCreationSettings {
+    ) -> BodyCreationSettings
+    where
+        P: Into<Point3<f32>>,
+        R: Into<Quaternion<f32>>,
+    {
+        let p = position.into();
         Self {
             shape,
-            position,
-            rotation,
+            position: [p.x, p.y, p.z, 0.],
+            rotation: *rotation.into().as_ref(),
             motion_type,
             object_layer,
             ..Default::default()
@@ -65,10 +80,10 @@ impl BodyCreationSettings {
 impl Default for BodyCreationSettings {
     fn default() -> Self {
         Self {
-            position: Vec3A::ZERO,
-            rotation: Quat::IDENTITY,
-            linear_velocity: Vec3A::ZERO,
-            angular_velocity: Vec3A::ZERO,
+            position: [0.; 4],
+            rotation: [0., 0., 0., 1.],
+            linear_velocity: [0.; 4],
+            angular_velocity: [0.; 4],
             user_data: 0,
             object_layer: 0,
             collision_group: JPC_CollisionGroup {

@@ -63,9 +63,9 @@ pub fn main() {
 
     // Bottom plane
     let floor_settings = jolt::BodyCreationSettings::new(
-        jolt::BoxShape::create(glam::Vec3::new(100.0, WALL_THICKNESS, 100.0)),
-        glam::vec3a(0.0, -1.0, 0.0),
-        glam::Quat::IDENTITY,
+        jolt::BoxShape::create([100.0, WALL_THICKNESS, 100.0]),
+        [0.0, -1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
@@ -74,9 +74,9 @@ pub fn main() {
 
     // Left plane
     let floor_settings = jolt::BodyCreationSettings::new(
-        jolt::BoxShape::create(glam::Vec3::new(WALL_THICKNESS, 100.0, 100.0)),
-        glam::vec3a(-WALL_OFFSET, 0.0, 0.0),
-        glam::Quat::IDENTITY,
+        jolt::BoxShape::create([WALL_THICKNESS, 100.0, 100.0]),
+        [-WALL_OFFSET, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
@@ -85,9 +85,9 @@ pub fn main() {
 
     // Right plane
     let floor_settings = jolt::BodyCreationSettings::new(
-        jolt::BoxShape::create(glam::Vec3::new(WALL_THICKNESS, 100.0, 100.0)),
-        glam::vec3a(WALL_OFFSET, 0.0, 0.0),
-        glam::Quat::IDENTITY,
+        jolt::BoxShape::create([WALL_THICKNESS, 100.0, 100.0]),
+        [WALL_OFFSET, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
@@ -96,9 +96,9 @@ pub fn main() {
 
     // Front plane
     let floor_settings = jolt::BodyCreationSettings::new(
-        jolt::BoxShape::create(glam::Vec3::new(100.0, 100.0, WALL_THICKNESS)),
-        glam::vec3a(0.0, 0.0, -WALL_OFFSET),
-        glam::Quat::IDENTITY,
+        jolt::BoxShape::create([100.0, 100.0, WALL_THICKNESS]),
+        [0.0, 0.0, -WALL_OFFSET],
+        [0.0, 0.0, 0.0, 1.0],
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
@@ -107,9 +107,9 @@ pub fn main() {
 
     // Back plane
     let floor_settings = jolt::BodyCreationSettings::new(
-        jolt::BoxShape::create(glam::Vec3::new(100.0, 100.0, WALL_THICKNESS)),
-        glam::vec3a(0.0, 0.0, WALL_OFFSET),
-        glam::Quat::IDENTITY,
+        jolt::BoxShape::create([100.0, 100.0, WALL_THICKNESS]),
+        [0.0, 0.0, WALL_OFFSET],
+        [0.0, 0.0, 0.0, 1.0],
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
     );
@@ -149,14 +149,14 @@ pub fn main() {
 
                 let sphere_settings = jolt::BodyCreationSettings::new(
                     jolt::SphereShape::create(0.25),
-                    glam::vec3a(deviation_x, 20.0, deviation_y),
-                    glam::Quat::IDENTITY,
+                    [deviation_x, 20.0, deviation_y],
+                    [0.0, 0.0, 0.0, 1.0],
                     jolt::MotionType::Dynamic,
                     OLAYER_MOVING,
                 );
                 let sphere_id = body_interface
                     .create_and_add_body(&sphere_settings, jolt::Activation::Activate);
-                body_interface.set_linear_velocity(sphere_id, glam::vec3(0.0, -10.0, 0.0));
+                body_interface.set_linear_velocity(sphere_id, [0.0, -10.0, 0.0]);
 
                 spheres.push((sphere_id, (random::<[u8; 3]>())));
 
@@ -205,8 +205,8 @@ pub fn main() {
                 .map(|(sphere_id, _)| {
                     let position = body_interface.center_of_mass_position(*sphere_id);
                     let rotation = body_interface.rotation(*sphere_id);
-                    Mat4::from_translation(Vec3::from(position.to_array()))
-                        * Mat4::from(Quat::from(rotation.to_array()))
+                    Mat4::from_translation(Vec3::from(*position.as_ref()))
+                        * Mat4::from(Quat::from(*rotation.as_ref()))
                         * Mat4::from_scale(0.25)
                 })
                 .collect::<Vec<_>>(),

@@ -4,8 +4,8 @@ use crate::{
     ObjectLayerPairFilter, ObjectLayerPairFilterWrapper, ObjectVsBroadPhaseLayerFilter,
     ObjectVsBroadPhaseLayerFilterWrapper, TempAllocator,
 };
-use glam::Vec3;
 use jolt_sys::JPC_EPhysicsUpdateError;
+use mint::Vector3;
 use std::ffi::c_void;
 
 pub struct PhysicsSystem {
@@ -89,17 +89,20 @@ impl PhysicsSystem {
         unsafe { jolt_sys::JPC_PhysicsSystem_GetMaxBodies(self.inner) }
     }
 
-    pub fn gravity(&self) -> Vec3 {
+    pub fn gravity(&self) -> Vector3<f32> {
         unsafe {
-            let mut result = Vec3::ZERO;
+            let mut result = Vector3::from([0.; 3]);
             jolt_sys::JPC_PhysicsSystem_GetGravity(self.inner, result.as_mut().as_mut_ptr());
             result
         }
     }
 
-    pub fn set_gravity(&self, gravity: Vec3) {
+    pub fn set_gravity<V>(&self, gravity: V)
+    where
+        V: AsRef<Vector3<f32>>,
+    {
         unsafe {
-            jolt_sys::JPC_PhysicsSystem_SetGravity(self.inner, gravity.as_ref().as_ptr());
+            jolt_sys::JPC_PhysicsSystem_SetGravity(self.inner, gravity.as_ref().as_ref().as_ptr());
         }
     }
 

@@ -1,5 +1,4 @@
 use crate::{Body, CollideShapeResult, ContactManifold, ContactSettings, SubShapeIDPair};
-use glam::Vec3;
 use jolt_sys::{
     JPC_Body, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings, JPC_Real,
     JPC_SubShapeIDPair, JPC_ValidateResult,
@@ -8,6 +7,7 @@ use jolt_sys::{
     JPC_ValidateResult_JPC_VALIDATE_RESULT_REJECT_ALL_CONTACTS,
     JPC_ValidateResult_JPC_VALIDATE_RESULT_REJECT_CONTACT,
 };
+use mint::Vector3;
 use std::ffi::c_void;
 
 #[repr(u32)]
@@ -26,7 +26,7 @@ pub trait ContactListener {
         &self,
         body1: &Body,
         body2: &Body,
-        base_offset: Vec3,
+        base_offset: Vector3<f32>,
         collision_result: &CollideShapeResult,
     ) -> ValidateResult;
 
@@ -80,7 +80,7 @@ impl ContactListenerWrapper {
         (*(wrapper as *const Self)).inner.on_contact_validate(
             &*in_body1,
             &*in_body2,
-            *(in_base_offset as *const Vec3),
+            *(in_base_offset as *const Vector3<f32>),
             &*in_collision_result,
         ) as _
     }
