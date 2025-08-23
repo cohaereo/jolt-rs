@@ -1,5 +1,5 @@
-use glam::{vec3, vec3a, Quat, Vec3};
-use jolt::ShapeSettings;
+use glam::{vec3, Quat, Vec3};
+use jolt::{HasShapeSettings, ShapeSettings};
 
 const OLAYER_NON_MOVING: jolt::ObjectLayer = 0;
 const OLAYER_MOVING: jolt::ObjectLayer = 1;
@@ -138,9 +138,9 @@ fn main() {
         Box::new(object_vs_object_layer_filter),
     );
 
-    let body_interface = physics_system.get_body_interface();
+    let body_interface = physics_system.body_interface();
 
-    // A body activation listener gets not   ified when bodies activate and go to sleep
+    // A body activation listener gets notified when bodies activate and go to sleep
     // Note that this is called from a job so whatever you do here needs to be thread safe.
     // Registering one is entirely optional.
     let body_activation_listener = MyBodyActivationListener;
@@ -155,7 +155,7 @@ fn main() {
     // Next we can create a rigid body to serve as the floor, we make a large box
     // Create the settings for the collision volume (the shape).
     // Note that for simple shapes (like boxes) you can also directly construct a BoxShape.
-    let floor_shape_settings = jolt::BoxShapeSettings::create(Vec3::new(100.0, 1.0, 100.0));
+    let floor_shape_settings = jolt::BoxShapeSettings::new(Vec3::new(100.0, 1.0, 100.0));
 
     // Create the shape
     let floor_shape = floor_shape_settings
@@ -165,7 +165,7 @@ fn main() {
     // Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
     let floor_settings = jolt::BodyCreationSettings::new(
         floor_shape,
-        vec3a(0.0, -1.0, 0.0),
+        vec3(0.0, -1.0, 0.0),
         Quat::IDENTITY,
         jolt::MotionType::Static,
         OLAYER_NON_MOVING,
@@ -182,8 +182,10 @@ fn main() {
     // Now create a dynamic body to bounce on the floor
     // Note that this uses the shorthand version of creating and adding a body to the world
     let sphere_settings = jolt::BodyCreationSettings::new(
-        jolt::SphereShape::create(0.5),
-        vec3a(0.0, 2.0, 0.0),
+        jolt::SphereShapeSettings::new(0.5)
+            .create_shape()
+            .expect("Failed to create sphere shape"),
+        vec3(0.0, 2.0, 0.0),
         Quat::IDENTITY,
         jolt::MotionType::Dynamic,
         OLAYER_MOVING,
@@ -216,5 +218,9 @@ fn main() {
             &mut temp_allocator,
             &mut job_system,
         );
+        physics_system.optimize_broad_phase();
     }
+
+    let pos = body_interface.center_of_mass_position(sphere_id);
+    println!("Final Position = {pos:?}");
 }

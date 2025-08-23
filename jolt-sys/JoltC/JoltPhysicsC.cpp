@@ -457,6 +457,15 @@ AssertFailedImpl(const char *in_expression,
 }
 
 #endif
+
+
+JPC_API void
+JPC_SetAssertFailedHandler(JPC_AssertFailedFunction in_handler) {
+#ifdef JPH_ENABLE_ASSERTS
+    JPH::AssertFailed = in_handler;
+#endif
+}
+
 //--------------------------------------------------------------------------------------------------
 JPC_API void
 JPC_RegisterDefaultAllocator(void)
@@ -1211,6 +1220,14 @@ JPC_ShapeSettings_CreateShape(const JPC_ShapeSettings *in_settings)
     return toJpc(shape);
 }
 //--------------------------------------------------------------------------------------------------
+JPC_API const char*
+JPC_ShapeSettings_GetError(const JPC_ShapeSettings *in_settings)
+{
+    const JPH::Result result = toJph(in_settings)->Create();
+    if (!result.HasError()) return nullptr;
+    return result.GetError().c_str();
+}
+//--------------------------------------------------------------------------------------------------
 JPC_API uint64_t
 JPC_ShapeSettings_GetUserData(const JPC_ShapeSettings *in_settings)
 {
@@ -1839,6 +1856,13 @@ JPC_Shape_GetCenterOfMass(const JPC_Shape *in_shape, JPC_Real out_position[3])
     storeRVec3(out_position, toJph(in_shape)->GetCenterOfMass());
 }
 //--------------------------------------------------------------------------------------------------
+JPC_API void
+JPC_Shape_GetMassProperties(const JPC_Shape *in_shape, JPC_MassProperties *out_mass_properties)
+{
+    JPH::MassProperties massProperties = toJph(in_shape)->GetMassProperties();
+    memcpy(out_mass_properties, &massProperties, sizeof(JPC_MassProperties));
+}
+//--------------------------------------------------------------------------------------------------
 //
 // JPC_ConstraintSettings
 //
@@ -2216,7 +2240,7 @@ JPC_BodyInterface_AddAngularImpulse(JPC_BodyInterface *in_iface, JPC_BodyID in_b
     toJph(in_iface)->AddAngularImpulse(toJph(in_body_id), loadVec3(in_impulse));
 }
 //--------------------------------------------------------------------------------------------------
-JPC_API JPC_MotionType 
+JPC_API JPC_MotionType
 JPC_BodyInterface_GetMotionType(const JPC_BodyInterface *in_iface, JPC_BodyID in_body_id)
 {
     return toJpc(toJph(in_iface)->GetMotionType(toJph(in_body_id)));

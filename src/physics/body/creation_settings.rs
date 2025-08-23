@@ -1,15 +1,22 @@
-use crate::{MotionQuality, MotionType, ObjectLayer, ShapeRef};
+use crate::{core::Vec3Ext, MotionQuality, MotionType, ObjectLayer, Shape};
 use jolt_sys::{
-    JPC_CollisionGroup, JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA,
-    JPC_MassProperties, JPC_ObjectLayer, JPC_OverrideMassProperties,
-    JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
+    JPC_BodyCreationSettings, JPC_CollisionGroup, JPC_MassProperties, JPC_ObjectLayer,
+    JPC_OverrideMassProperties, JPC_COLLISION_GROUP_INVALID_GROUP,
+    JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
 };
 use mint::{Point3, Quaternion};
 use std::ptr::null;
 
+pub use jolt_sys::{
+    JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_INERTIA,
+    JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA,
+    JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_MASS_INERTIA_PROVIDED,
+};
+
+// TODO(cohae): For the sake of safety and compatibility, this should be a native rust struct that we can map to JPC_BodyCreationSettings
 #[repr(C)]
 #[repr(align(16))]
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 pub struct BodyCreationSettings {
     pub position: [f32; 4],
     pub rotation: [f32; 4],
@@ -36,7 +43,7 @@ pub struct BodyCreationSettings {
     __bindgen_padding_0: [u64; 0usize],
     pub mass_properties_override: JPC_MassProperties,
     reserved: *const ::std::os::raw::c_void,
-    pub shape: ShapeRef,
+    pub shape: Shape,
 }
 
 #[test]
@@ -51,7 +58,7 @@ fn test_layout_BodyCreationSettings() {
 
 impl BodyCreationSettings {
     pub fn new<P, R>(
-        shape: ShapeRef,
+        shape: Shape,
         position: P,
         rotation: R,
         motion_type: MotionType,
@@ -64,35 +71,20 @@ impl BodyCreationSettings {
         let p = position.into();
         Self {
             shape,
-            position: [p.x, p.y, p.z, 0.],
+            position: p.to_fixed_vec3(),
             rotation: *rotation.into().as_ref(),
             motion_type,
             object_layer,
-            ..Default::default()
-        }
-    }
 
-    pub fn as_jpc(&self) -> *const jolt_sys::JPC_BodyCreationSettings {
-        self as *const _ as _
-    }
-}
-
-impl Default for BodyCreationSettings {
-    fn default() -> Self {
-        Self {
-            position: [0.; 4],
-            rotation: [0., 0., 0., 1.],
             linear_velocity: [0.; 4],
             angular_velocity: [0.; 4],
             user_data: 0,
-            object_layer: 0,
             collision_group: JPC_CollisionGroup {
                 filter: null(),
                 group_id: JPC_COLLISION_GROUP_INVALID_GROUP,
                 sub_group_id: JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
             },
-            motion_type: MotionType::Dynamic,
-            allow_dynamic_or_kinematic: false,
+            allow_dynamic_or_kinematic: true,
             is_sensor: false,
             use_manifold_reduction: true,
             motion_quality: MotionQuality::Discrete,
@@ -109,8 +101,13 @@ impl Default for BodyCreationSettings {
             inertia_multiplier: 1.0,
             __bindgen_padding_0: [0; 0],
             mass_properties_override: unsafe { std::mem::zeroed() },
-            shape: unsafe { std::mem::zeroed() },
             reserved: null(),
         }
     }
+
+    pub fn as_jpc(&self) -> *const jolt_sys::JPC_BodyCreationSettings {
+        self as *const _ as _
+    }
 }
+
+unsafe impl Send for BodyCreationSettings {}

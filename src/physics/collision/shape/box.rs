@@ -1,40 +1,46 @@
-use crate::shape::shape_settings::ShapeSettings;
-use crate::ShapeRef;
-use jolt_sys::JPC_ShapeSettings;
+use crate::{shape::shape_settings::ShapeSettings, HasShapeSettings, Shape};
 use mint::Vector3;
 
 #[repr(transparent)]
-pub struct BoxShapeSettings(*mut jolt_sys::JPC_BoxShapeSettings);
+pub struct BoxShapeSettings(ShapeSettings);
 
 impl BoxShapeSettings {
-    pub fn create<V>(half_extents: V) -> Self
+    pub fn new<V>(half_extents: V) -> Self
     where
         V: Into<Vector3<f32>>,
     {
         unsafe {
-            Self(jolt_sys::JPC_BoxShapeSettings_Create(
-                half_extents.into().as_ref().as_ptr(),
+            Self(ShapeSettings::from_raw(
+                jolt_sys::JPC_BoxShapeSettings_Create(half_extents.into().as_ref().as_ptr()) as _,
             ))
         }
     }
-}
 
-impl ShapeSettings for BoxShapeSettings {
-    fn as_shape_settings(&self) -> *const JPC_ShapeSettings {
-        self.0 as *mut JPC_ShapeSettings
+    pub fn half_extent(&self) -> Vector3<f32> {
+        unsafe {
+            let mut half_extent = [0.0; 3];
+            jolt_sys::JPC_BoxShapeSettings_GetHalfExtent(
+                self.0.as_raw() as _,
+                half_extent.as_mut_ptr(),
+            );
+
+            half_extent.into()
+        }
+    }
+
+    pub fn convex_radius(&self) -> f32 {
+        unsafe { jolt_sys::JPC_BoxShapeSettings_GetConvexRadius(self.0.as_raw() as _) }
     }
 }
 
-/// Emulates `JPH::BoxShape`
-pub struct BoxShape;
+impl HasShapeSettings for BoxShapeSettings {
+    fn as_shape_settings(&self) -> &ShapeSettings {
+        &self.0
+    }
+}
 
-impl BoxShape {
-    pub fn create<V>(half_extents: V) -> ShapeRef
-    where
-        V: Into<Vector3<f32>>,
-    {
-        let shape_settings = BoxShapeSettings::create(half_extents);
-
-        shape_settings.create_shape().unwrap()
+impl AsRef<ShapeSettings> for BoxShapeSettings {
+    fn as_ref(&self) -> &ShapeSettings {
+        self.as_shape_settings()
     }
 }

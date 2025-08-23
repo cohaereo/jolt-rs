@@ -1,16 +1,18 @@
-use crate::{Activation, Body, BodyCreationSettings, BodyId, MotionType, ObjectLayer};
+use crate::{
+    core::Vec3Ext, Activation, Body, BodyCreationSettings, BodyId, MotionType, ObjectLayer,
+};
 use mint::{Point3, Quaternion, Vector3};
-use std::mem::transmute;
+use std::{marker::PhantomData, mem::transmute};
 
-pub struct BodyInterface(*mut jolt_sys::JPC_BodyInterface);
+pub struct BodyInterface<'a>(*mut jolt_sys::JPC_BodyInterface, PhantomData<&'a ()>);
 
-impl From<*mut jolt_sys::JPC_BodyInterface> for BodyInterface {
+impl<'a> From<*mut jolt_sys::JPC_BodyInterface> for BodyInterface<'a> {
     fn from(ptr: *mut jolt_sys::JPC_BodyInterface) -> Self {
-        Self(ptr)
+        Self(ptr, PhantomData)
     }
 }
 
-impl BodyInterface {
+impl<'a> BodyInterface<'a> {
     pub fn create_body(&self, body_settings: &BodyCreationSettings) -> Option<*mut Body> {
         unsafe {
             let body_id = jolt_sys::JPC_BodyInterface_CreateBody(self.0, body_settings.as_jpc());
@@ -83,12 +85,14 @@ impl BodyInterface {
         linear: impl Into<Vector3<f32>>,
         angular: impl Into<Vector3<f32>>,
     ) {
+        let linear = linear.into().to_fixed_vec3();
+        let angular = angular.into().to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_SetLinearAndAngularVelocity(
                 self.0,
                 body_id,
-                linear.into().as_ref().as_ptr(),
-                angular.into().as_ref().as_ptr(),
+                linear.as_ptr(),
+                angular.as_ptr(),
             );
         }
     }
@@ -109,12 +113,9 @@ impl BodyInterface {
     }
 
     pub fn set_linear_velocity(&self, body_id: BodyId, velocity: impl Into<Vector3<f32>>) {
+        let velocity = velocity.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_SetLinearVelocity(
-                self.0,
-                body_id,
-                velocity.into().as_ref().as_ptr(),
-            );
+            jolt_sys::JPC_BodyInterface_SetLinearVelocity(self.0, body_id, velocity.as_ptr());
         }
     }
 
@@ -128,12 +129,9 @@ impl BodyInterface {
     }
 
     pub fn add_linear_velocity(&self, body_id: BodyId, velocity: impl Into<Vector3<f32>>) {
+        let velocity = velocity.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddLinearVelocity(
-                self.0,
-                body_id,
-                velocity.into().as_ref().as_ptr(),
-            );
+            jolt_sys::JPC_BodyInterface_AddLinearVelocity(self.0, body_id, velocity.as_ptr());
         }
     }
 
@@ -143,23 +141,22 @@ impl BodyInterface {
         linear: impl Into<Vector3<f32>>,
         angular: impl Into<Vector3<f32>>,
     ) {
+        let linear = linear.to_fixed_vec3();
+        let angular = angular.to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_AddLinearAndAngularVelocity(
                 self.0,
                 body_id,
-                linear.into().as_ref().as_ptr(),
-                angular.into().as_ref().as_ptr(),
+                linear.as_ptr(),
+                angular.as_ptr(),
             );
         }
     }
 
     pub fn set_angular_velocity(&self, body_id: BodyId, velocity: impl Into<Vector3<f32>>) {
+        let v = velocity.to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_SetAngularVelocity(
-                self.0,
-                body_id,
-                velocity.into().as_ref().as_ptr(),
-            );
+            jolt_sys::JPC_BodyInterface_SetAngularVelocity(self.0, body_id, v.as_ptr());
         }
     }
 
@@ -203,11 +200,12 @@ impl BodyInterface {
         position: impl Into<Point3<f32>>,
         activation: Activation,
     ) {
+        let position = position.into().to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_SetPosition(
                 self.0,
                 body_id,
-                position.into().as_ref().as_ptr(),
+                position.as_ptr(),
                 activation as _,
             );
         }
@@ -259,14 +257,17 @@ impl BodyInterface {
         linear_velocity: impl Into<Vector3<f32>>,
         angular_velocity: impl Into<Vector3<f32>>,
     ) {
+        let position = position.into().to_fixed_vec3();
+        let linear_velocity = linear_velocity.into().to_fixed_vec3();
+        let angular_velocity = angular_velocity.into().to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_SetPositionRotationAndVelocity(
                 self.0,
                 body_id,
-                position.into().as_ref().as_ptr(),
+                position.as_ptr(),
                 rotation.into().as_ref().as_ptr(),
-                linear_velocity.into().as_ref().as_ptr(),
-                angular_velocity.into().as_ref().as_ptr(),
+                linear_velocity.as_ptr(),
+                angular_velocity.as_ptr(),
             );
         }
     }
@@ -288,8 +289,9 @@ impl BodyInterface {
     }
 
     pub fn add_force(&self, body_id: BodyId, force: impl Into<Vector3<f32>>) {
+        let force = force.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddForce(self.0, body_id, force.into().as_ref().as_ptr());
+            jolt_sys::JPC_BodyInterface_AddForce(self.0, body_id, force.as_ptr());
         }
     }
 
@@ -299,19 +301,22 @@ impl BodyInterface {
         force: impl Into<Vector3<f32>>,
         position: impl Into<Point3<f32>>,
     ) {
+        let force = force.into().to_fixed_vec3();
+        let position = position.into().to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_AddForceAtPosition(
                 self.0,
                 body_id,
-                force.into().as_ref().as_ptr(),
-                position.into().as_ref().as_ptr(),
+                force.as_ptr(),
+                position.as_ptr(),
             );
         }
     }
 
     pub fn add_torque(&self, body_id: BodyId, torque: impl Into<Vector3<f32>>) {
+        let torque = torque.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddTorque(self.0, body_id, torque.into().as_ref().as_ptr());
+            jolt_sys::JPC_BodyInterface_AddTorque(self.0, body_id, torque.as_ptr());
         }
     }
 
@@ -321,23 +326,22 @@ impl BodyInterface {
         force: impl Into<Vector3<f32>>,
         torque: impl Into<Vector3<f32>>,
     ) {
+        let force = force.into().to_fixed_vec3();
+        let torque = torque.into().to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_AddForceAndTorque(
                 self.0,
                 body_id,
-                force.into().as_ref().as_ptr(),
-                torque.into().as_ref().as_ptr(),
+                force.as_ptr(),
+                torque.as_ptr(),
             );
         }
     }
 
     pub fn add_impulse(&self, body_id: BodyId, impulse: impl Into<Vector3<f32>>) {
+        let impulse = impulse.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddImpulse(
-                self.0,
-                body_id,
-                impulse.into().as_ref().as_ptr(),
-            );
+            jolt_sys::JPC_BodyInterface_AddImpulse(self.0, body_id, impulse.as_ptr());
         }
     }
 
@@ -347,23 +351,22 @@ impl BodyInterface {
         impulse: impl Into<Vector3<f32>>,
         position: impl Into<Point3<f32>>,
     ) {
+        let impulse = impulse.into().to_fixed_vec3();
+        let position = position.into().to_fixed_vec3();
         unsafe {
             jolt_sys::JPC_BodyInterface_AddImpulseAtPosition(
                 self.0,
                 body_id,
-                impulse.into().as_ref().as_ptr(),
-                position.into().as_ref().as_ptr(),
+                impulse.as_ptr(),
+                position.as_ptr(),
             );
         }
     }
 
     pub fn add_angular_impulse(&self, body_id: BodyId, impulse: impl Into<Vector3<f32>>) {
+        let impulse = impulse.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddAngularImpulse(
-                self.0,
-                body_id,
-                impulse.into().as_ref().as_ptr(),
-            );
+            jolt_sys::JPC_BodyInterface_AddAngularImpulse(self.0, body_id, impulse.as_ptr());
         }
     }
 

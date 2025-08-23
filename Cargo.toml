@@ -1,4 +1,6 @@
-workspace = { members = ["jolt-sys", "jolt-samples"] }
+[workspace]
+members = ["jolt-sys", "jolt-samples"]
+
 [package]
 name = "jolt"
 version = "0.1.0"

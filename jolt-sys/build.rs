@@ -4,12 +4,23 @@ use std::path::PathBuf;
 fn main() {
     let mut cfg = cmake::Config::new("./");
 
-    let profile = cfg.get_profile().to_string();
+    let profile = match &std::env::var("PROFILE").unwrap()[..] {
+        "debug" => "Debug",
+        "release" | "bench" => "Release",
+        unknown => {
+            eprintln!(
+                "Warning: unknown Rust profile={}; defaulting to a release build.",
+                unknown
+            );
+            "Release"
+        }
+    };
 
     let dst = cfg
         .define("ENABLE_ALL_WARNINGS", "OFF")
         .define("USE_STATIC_MSVC_RUNTIME_LIBRARY", "OFF")
         // .build_target("JoltC")
+        .profile(profile)
         .build_target("ALL_BUILD")
         .build();
 
@@ -35,4 +46,5 @@ fn main() {
         .expect("Couldn't write bindings!");
 
     println!("cargo:rerun-if-changed=JoltC/JoltPhysicsC.h");
+    println!("cargo:rerun-if-changed=CMakeLists.txt");
 }

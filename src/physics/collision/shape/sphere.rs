@@ -1,28 +1,26 @@
-use crate::{ShapeRef, ShapeSettings};
-use jolt_sys::JPC_ShapeSettings;
+use crate::{HasShapeSettings, Shape, ShapeSettings};
 
 #[repr(transparent)]
-pub struct SphereShapeSettings(*mut jolt_sys::JPC_SphereShapeSettings);
+pub struct SphereShapeSettings(ShapeSettings);
 
 impl SphereShapeSettings {
-    pub fn create(radius: f32) -> Self {
-        unsafe { Self(jolt_sys::JPC_SphereShapeSettings_Create(radius)) }
+    pub fn new(radius: f32) -> Self {
+        unsafe {
+            Self(ShapeSettings::from_raw(
+                jolt_sys::JPC_SphereShapeSettings_Create(radius) as _,
+            ))
+        }
     }
 }
 
-impl ShapeSettings for SphereShapeSettings {
-    fn as_shape_settings(&self) -> *const JPC_ShapeSettings {
-        self.0 as *mut JPC_ShapeSettings
+impl HasShapeSettings for SphereShapeSettings {
+    fn as_shape_settings(&self) -> &ShapeSettings {
+        &self.0
     }
 }
 
-/// Emulates `JPH::SphereShape`
-pub struct SphereShape;
-
-impl SphereShape {
-    pub fn create(radius: f32) -> ShapeRef {
-        let shape_settings = SphereShapeSettings::create(radius);
-
-        shape_settings.create_shape().unwrap()
+impl AsRef<ShapeSettings> for SphereShapeSettings {
+    fn as_ref(&self) -> &ShapeSettings {
+        self.as_shape_settings()
     }
 }

@@ -99,14 +99,14 @@ impl PhysicsSystem {
 
     pub fn set_gravity<V>(&self, gravity: V)
     where
-        V: AsRef<Vector3<f32>>,
+        V: Into<Vector3<f32>>,
     {
         unsafe {
-            jolt_sys::JPC_PhysicsSystem_SetGravity(self.inner, gravity.as_ref().as_ref().as_ptr());
+            jolt_sys::JPC_PhysicsSystem_SetGravity(self.inner, gravity.into().as_ref().as_ptr());
         }
     }
 
-    pub fn get_body_interface(&self) -> BodyInterface {
+    pub fn body_interface<'a>(&'a self) -> BodyInterface<'a> {
         BodyInterface::from(unsafe { jolt_sys::JPC_PhysicsSystem_GetBodyInterface(self.inner) })
     }
 

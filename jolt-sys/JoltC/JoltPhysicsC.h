@@ -289,6 +289,8 @@ typedef void (*JPC_FreeFunction)(void *in_block);
 
 typedef void *(*JPC_AlignedAllocateFunction)(size_t in_size, size_t in_alignment);
 typedef void (*JPC_AlignedFreeFunction)(void *in_block);
+
+typedef bool (*JPC_AssertFailedFunction)(const char *inExpression, const char *inMessage, const char *inFile, unsigned int inLine);
 //--------------------------------------------------------------------------------------------------
 //
 // Opaque Types
@@ -943,6 +945,9 @@ JPC_BodyCreationSettings_Set(JPC_BodyCreationSettings *out_settings,
                              JPC_MotionType in_motion_type,
                              JPC_ObjectLayer in_layer);
 
+JPC_API void
+JPC_SetAssertFailedHandler(JPC_AssertFailedFunction in_handler);
+
 #if JPC_DEBUG_RENDERER == 1
 /// Provide an instantiated VTable to get wrapped by the singleton implementation of JPH::DebugRenderer. This should be
 /// called only once, at program initialization, as when instantiating a DebugRenderer implementation in Jolt proper.
@@ -1290,6 +1295,10 @@ JPC_ShapeSettings_GetRefCount(const JPC_ShapeSettings *in_settings);
 JPC_API JPC_Shape *
 JPC_ShapeSettings_CreateShape(const JPC_ShapeSettings *in_settings);
 
+/// Returns error message if shape creation failed, or NULL if there is no error available (either because the shape hasn't been created yet or because there was no error during creation).
+JPC_API const char *
+JPC_ShapeSettings_GetError(const JPC_ShapeSettings *in_settings);
+
 JPC_API uint64_t
 JPC_ShapeSettings_GetUserData(const JPC_ShapeSettings *in_settings);
 
@@ -1600,6 +1609,9 @@ JPC_Shape_SetUserData(JPC_Shape *in_shape, uint64_t in_user_data);
 
 JPC_API void
 JPC_Shape_GetCenterOfMass(const JPC_Shape *in_shape, JPC_Real out_position[3]);
+
+JPC_API void
+JPC_Shape_GetMassProperties(const JPC_Shape *in_shape, JPC_MassProperties *out_mass_properties);
 //--------------------------------------------------------------------------------------------------
 //
 // JPC_ConstraintSettings
