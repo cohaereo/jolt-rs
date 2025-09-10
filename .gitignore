@@ -3,3 +3,4 @@
 **/.idea
 
 jolt-sys/cmake-build-*
+__cmake_systeminformation

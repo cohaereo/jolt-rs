@@ -189,16 +189,16 @@ endfunction()
 SET_INTERPROCEDURAL_OPTIMIZATION()
 
 # Set repository root
-set(PHYSICS_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/)
+set(PHYSICS_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/Jolt)
 
 # Make Jolt Library
-include(${PHYSICS_REPO_ROOT}/Jolt/Jolt.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/Jolt.cmake)
 if (IOS)
 	# Ensure that we enable SSE4.2 for the x86_64 build, CMAKE_SYSTEM_PROCESSOR is not set for iOS
 	set_property(TARGET Jolt PROPERTY XCODE_ATTRIBUTE_OTHER_CPLUSPLUSFLAGS[arch=x86_64] "$(inherited) -msse4.2 -mpopcnt")
 endif()
 
-set(JOLTC_ROOT ${PHYSICS_REPO_ROOT}/JoltC)
+set(JOLTC_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/JoltC)
 add_library(JoltC SHARED
   ${JOLTC_ROOT}/JoltPhysicsC.cpp
   ${JOLTC_ROOT}/JoltPhysicsC.h

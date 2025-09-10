@@ -1,4 +1,5 @@
 CompileFlags:
   Add:
     - "--include-directory=T:/Projects/jolt-rs/jolt-sys/"
+    - "--include-directory=T:/Projects/jolt-rs/jolt-sys/Jolt"
     - "-std=c++17"

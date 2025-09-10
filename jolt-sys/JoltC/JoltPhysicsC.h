@@ -1812,7 +1812,7 @@ JPC_BodyInterface_AddImpulseAtPosition(JPC_BodyInterface *in_iface,
 JPC_API void
 JPC_BodyInterface_AddAngularImpulse(JPC_BodyInterface *in_iface, JPC_BodyID in_body_id, const float in_impulse[3]);
 
-JPC_API JPC_MotionType 
+JPC_API JPC_MotionType
 JPC_BodyInterface_GetMotionType(const JPC_BodyInterface *in_iface, JPC_BodyID in_body_id);
 
 JPC_API void
