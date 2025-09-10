@@ -1,4 +1,4 @@
-use crate::BodyId;
+use crate::{util::PointerConstExt, BodyId};
 use jolt_sys::JPC_BodyID;
 use std::ffi::c_void;
 
@@ -17,7 +17,7 @@ pub struct BodyActivationListenerWrapper {
 impl BodyActivationListenerWrapper {
     pub fn new(inner: Box<dyn BodyActivationListener>) -> Self {
         let vtable = Box::new(jolt_sys::JPC_BodyActivationListenerVTable {
-            __vtable_header: unsafe { std::mem::zeroed() },
+            __vtable_header: [std::ptr::null()],
             OnBodyActivated: Some(Self::on_body_activated),
             OnBodyDeactivated: Some(Self::on_body_deactivated),
         });
@@ -35,7 +35,7 @@ impl BodyActivationListenerWrapper {
     ) {
         (*(wrapper as *const Self))
             .inner
-            .on_body_activated(*in_body_id, in_user_data)
+            .on_body_activated(*in_body_id.as_ref_expect("in_body_id"), in_user_data)
     }
 
     unsafe extern "C" fn on_body_deactivated(
@@ -45,6 +45,6 @@ impl BodyActivationListenerWrapper {
     ) {
         (*(wrapper as *const Self))
             .inner
-            .on_body_deactivated(*in_body_id, in_user_data)
+            .on_body_deactivated(*in_body_id.as_ref_expect("in_body_id"), in_user_data)
     }
 }

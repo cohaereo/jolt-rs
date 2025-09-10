@@ -1,4 +1,7 @@
-use crate::{Body, CollideShapeResult, ContactManifold, ContactSettings, Real, SubShapeIDPair};
+use crate::{
+    util::{PointerConstExt, PointerMutExt},
+    Body, CollideShapeResult, ContactManifold, ContactSettings, Real, SubShapeIDPair,
+};
 use jolt_sys::{
     JPC_Body, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings, JPC_SubShapeIDPair,
     JPC_ValidateResult, JPC_ValidateResult_JPC_VALIDATE_RESULT_ACCEPT_ALL_CONTACTS,
@@ -77,10 +80,10 @@ impl ContactListenerWrapper {
         in_collision_result: *const JPC_CollideShapeResult,
     ) -> JPC_ValidateResult {
         (*(wrapper as *const Self)).inner.on_contact_validate(
-            &*in_body1,
-            &*in_body2,
+            in_body1.as_ref_expect("in_body1"),
+            in_body2.as_ref_expect("in_body2"),
             *(in_base_offset as *const Vector3<f32>),
-            &*in_collision_result,
+            in_collision_result.as_ref_expect("in_collision_result"),
         ) as _
     }
 
@@ -92,10 +95,10 @@ impl ContactListenerWrapper {
         io_settings: *mut JPC_ContactSettings,
     ) {
         (*(wrapper as *const Self)).inner.on_contact_added(
-            &*in_body1,
-            &*in_body2,
-            &*in_manifold,
-            &mut *io_settings,
+            in_body1.as_ref_expect("in_body1"),
+            in_body2.as_ref_expect("in_body2"),
+            in_manifold.as_ref_expect("in_manifold"),
+            io_settings.as_mut_expect("io_settings"),
         )
     }
 
@@ -107,10 +110,10 @@ impl ContactListenerWrapper {
         io_settings: *mut JPC_ContactSettings,
     ) {
         (*(wrapper as *const Self)).inner.on_contact_persisted(
-            &*in_body1,
-            &*in_body2,
-            &*in_manifold,
-            &mut *io_settings,
+            in_body1.as_ref_expect("in_body1"),
+            in_body2.as_ref_expect("in_body2"),
+            in_manifold.as_ref_expect("in_manifold"),
+            io_settings.as_mut_expect("io_settings"),
         )
     }
 
@@ -120,6 +123,6 @@ impl ContactListenerWrapper {
     ) {
         (*(wrapper as *const Self))
             .inner
-            .on_contact_removed(&*in_sub_shape_pair)
+            .on_contact_removed(in_sub_shape_pair.as_ref_expect("in_sub_shape_pair"))
     }
 }
