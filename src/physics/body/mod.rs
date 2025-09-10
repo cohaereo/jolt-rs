@@ -4,13 +4,17 @@ use jolt_sys::{
     JPC_EMotionType_JPC_MOTION_TYPE_KINEMATIC, JPC_EMotionType_JPC_MOTION_TYPE_STATIC,
 };
 
+mod allowed_dofs;
 mod body_activation_listener;
 mod contact_listener;
 mod creation_settings;
+mod mass_properties;
 
+pub use allowed_dofs::*;
 pub use body_activation_listener::*;
 pub use contact_listener::*;
 pub use creation_settings::*;
+pub use mass_properties::*;
 
 pub type BodyId = jolt_sys::JPC_BodyID;
 pub type Body = jolt_sys::JPC_Body;

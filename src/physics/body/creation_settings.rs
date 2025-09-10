@@ -1,8 +1,8 @@
-use crate::{MotionQuality, MotionType, ObjectLayer, Shape, Vec3Ext};
+use crate::{AllowedDOFs, MassProperties, MotionQuality, MotionType, ObjectLayer, Shape, Vec3Ext};
 use jolt_sys::{
-    JPC_AllowedDOFs, JPC_CollisionGroup, JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL, JPC_MassProperties,
-    JPC_ObjectLayer, JPC_OverrideMassProperties, JPC_Real, JPC_COLLISION_GROUP_INVALID_GROUP,
-    JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
+    JPC_AllowedDOFs, JPC_CollisionGroup, JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL,
+    JPC_EOverrideMassProperties, JPC_MassProperties, JPC_ObjectLayer, JPC_OverrideMassProperties,
+    JPC_Real, JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
 };
 use mint::{Point3, Quaternion, Vector3};
 use std::ptr::null;
@@ -12,6 +12,16 @@ pub use jolt_sys::{
     JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA,
     JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_MASS_INERTIA_PROVIDED,
 };
+
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OverrideMassProperties {
+    CalculateInertia = JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_INERTIA as u8,
+    CalculateMassAndInertia =
+        JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA as u8,
+    MassAndInertiaProvided =
+        JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_MASS_INERTIA_PROVIDED as u8,
+}
 
 #[derive(Clone)]
 pub struct BodyCreationSettings {
@@ -23,7 +33,7 @@ pub struct BodyCreationSettings {
     pub object_layer: ObjectLayer,
     pub collision_group: JPC_CollisionGroup,
     pub motion_type: MotionType,
-    pub allowed_dofs: JPC_AllowedDOFs,
+    pub allowed_dofs: AllowedDOFs,
     pub allow_dynamic_or_kinematic: bool,
     pub is_sensor: bool,
     pub sensor_detects_static: bool,
@@ -37,9 +47,9 @@ pub struct BodyCreationSettings {
     pub max_linear_velocity: f32,
     pub max_angular_velocity: f32,
     pub gravity_factor: f32,
-    pub override_mass_properties: JPC_OverrideMassProperties,
+    pub override_mass_properties: OverrideMassProperties,
     pub inertia_multiplier: f32,
-    pub mass_properties_override: JPC_MassProperties,
+    pub mass_properties_override: MassProperties,
     pub shape: Shape,
 }
 
@@ -71,7 +81,7 @@ impl BodyCreationSettings {
                 group_id: JPC_COLLISION_GROUP_INVALID_GROUP,
                 sub_group_id: JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
             },
-            allowed_dofs: JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL as _,
+            allowed_dofs: AllowedDOFs::all(),
             allow_dynamic_or_kinematic: true,
             is_sensor: false,
             sensor_detects_static: false,
@@ -85,10 +95,9 @@ impl BodyCreationSettings {
             max_linear_velocity: 500.0,
             max_angular_velocity: 0.25 * std::f32::consts::PI * 60.0,
             gravity_factor: 1.0,
-            override_mass_properties:
-                JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA as _,
+            override_mass_properties: OverrideMassProperties::CalculateMassAndInertia,
             inertia_multiplier: 1.0,
-            mass_properties_override: unsafe { std::mem::zeroed() },
+            mass_properties_override: MassProperties::default(),
         }
     }
 
@@ -102,7 +111,7 @@ impl BodyCreationSettings {
             object_layer: self.object_layer,
             collision_group: self.collision_group,
             motion_type: self.motion_type as u8,
-            allowed_dofs: self.allowed_dofs,
+            allowed_dofs: self.allowed_dofs.bits(),
             allow_dynamic_or_kinematic: self.allow_dynamic_or_kinematic,
             is_sensor: self.is_sensor,
             sensor_detects_static: self.sensor_detects_static,
@@ -116,10 +125,10 @@ impl BodyCreationSettings {
             max_linear_velocity: self.max_linear_velocity,
             max_angular_velocity: self.max_angular_velocity,
             gravity_factor: self.gravity_factor,
-            override_mass_properties: self.override_mass_properties,
+            override_mass_properties: self.override_mass_properties as u8,
             inertia_multiplier: self.inertia_multiplier,
             __bindgen_padding_0: [0; 0],
-            mass_properties_override: self.mass_properties_override,
+            mass_properties_override: self.mass_properties_override.to_jpc(),
             reserved: std::ptr::null(),
             shape: self.shape.as_raw(),
         }
