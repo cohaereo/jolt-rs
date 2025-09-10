@@ -32,10 +32,6 @@
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Body/BodyLock.h>
 
-#if defined(_MSC_VER) && defined(_DEBUG)
-#include <Jolt/Physics/PhysicsLock.cpp>
-#endif
-
 JPH_SUPPRESS_WARNINGS
 //--------------------------------------------------------------------------------------------------
 JPC_API JPC_Body **
@@ -241,6 +237,10 @@ static_assert(
     offsetof(JPH::BodyCreationSettings, mIsSensor) == offsetof(JPC_BodyCreationSettings, is_sensor));
 static_assert(
     offsetof(JPH::BodyCreationSettings, mAngularDamping) == offsetof(JPC_BodyCreationSettings, angular_damping));
+static_assert(
+    offsetof(JPH::BodyCreationSettings, mNumVelocityStepsOverride) == offsetof(JPC_BodyCreationSettings, num_velocity_steps_override));
+static_assert(
+    offsetof(JPH::BodyCreationSettings, mNumPositionStepsOverride) == offsetof(JPC_BodyCreationSettings, num_position_steps_override));
 
 static_assert(
     offsetof(JPH::ContactManifold, mWorldSpaceNormal) == offsetof(JPC_ContactManifold, normal));
@@ -269,6 +269,8 @@ static_assert(offsetof(JPH::MotionProperties, mTorque) == offsetof(JPC_MotionPro
 static_assert(offsetof(JPH::MotionProperties, mMotionQuality) == offsetof(JPC_MotionProperties, motion_quality));
 static_assert(offsetof(JPH::MotionProperties, mGravityFactor) == offsetof(JPC_MotionProperties, gravity_factor));
 static_assert(offsetof(JPH::MotionProperties, mAllowedDOFs) == offsetof(JPC_MotionProperties, allowed_dofs));
+static_assert(offsetof(JPH::MotionProperties, mNumVelocityStepsOverride) == offsetof(JPC_MotionProperties, num_velocity_steps_override));
+static_assert(offsetof(JPH::MotionProperties, mNumPositionStepsOverride) == offsetof(JPC_MotionProperties, num_position_steps_override));
 #if JPC_ENABLE_ASSERTS == 1
 static_assert(
     offsetof(JPH::MotionProperties, mCachedBodyType) == offsetof(JPC_MotionProperties, cached_body_type));
@@ -299,7 +301,8 @@ static_assert(offsetof(JPH::RayCastResult, mBodyID) == offsetof(JPC_RayCastResul
 static_assert(offsetof(JPH::RayCastResult, mFraction) == offsetof(JPC_RayCastResult, fraction));
 static_assert(offsetof(JPH::RayCastResult, mSubShapeID2) == offsetof(JPC_RayCastResult, sub_shape_id));
 
-static_assert(offsetof(JPH::RayCastSettings, mBackFaceMode) == offsetof(JPC_RayCastSettings, back_face_mode));
+static_assert(offsetof(JPH::RayCastSettings, mBackFaceModeTriangles) == offsetof(JPC_RayCastSettings, back_face_mode_triangles));
+static_assert(offsetof(JPH::RayCastSettings, mBackFaceModeConvex) == offsetof(JPC_RayCastSettings, back_face_mode_convex));
 static_assert(offsetof(JPH::RayCastSettings, mTreatConvexAsSolid) ==
     offsetof(JPC_RayCastSettings, treat_convex_as_solid));
 

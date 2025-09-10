@@ -392,6 +392,8 @@ typedef struct JPC_MotionProperties
     JPC_MotionQuality  motion_quality;
     bool               allow_sleeping;
     JPC_AllowedDOFs    allowed_dofs;
+    uint8_t            num_velocity_steps_override;
+    uint8_t            num_position_steps_override;
 
 #if JPC_DOUBLE_PRECISION == 1
     alignas(8) uint8_t reserved[76];
@@ -427,9 +429,11 @@ typedef struct JPC_BodyCreationSettings
     JPC_AllowedDOFs            allowed_dofs;
     bool                       allow_dynamic_or_kinematic;
     bool                       is_sensor;
-    bool                       sensor_detects_static;
+    bool                       collide_kinematic_vs_non_dynamic;
     bool                       use_manifold_reduction;
+    bool                       apply_gyroscopic_force;
     JPC_MotionQuality          motion_quality;
+    bool                       enhanced_internal_edge_removal;
     bool                       allow_sleeping;
     float                      friction;
     float                      restitution;
@@ -438,6 +442,8 @@ typedef struct JPC_BodyCreationSettings
     float                      max_linear_velocity;
     float                      max_angular_velocity;
     float                      gravity_factor;
+    uint32_t                   num_velocity_steps_override;
+    uint32_t                   num_position_steps_override;
     JPC_OverrideMassProperties override_mass_properties;
     float                      inertia_multiplier;
     JPC_MassProperties         mass_properties_override;
@@ -630,7 +636,8 @@ typedef struct JPC_RayCastResult
 // NOTE: Needs to be kept in sync with JPH::RayCastSettings
 typedef struct JPC_RayCastSettings
 {
-    JPC_BackFaceMode back_face_mode;
+    JPC_BackFaceMode back_face_mode_triangles;
+    JPC_BackFaceMode back_face_mode_convex;
     bool             treat_convex_as_solid;
 } JPC_RayCastSettings;
 
