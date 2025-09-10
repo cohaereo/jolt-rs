@@ -1,8 +1,8 @@
 use crate::{
-    BodyActivationListener, BodyActivationListenerWrapper, BodyInterface, BroadPhaseLayerInterface,
-    BroadPhaseLayerInterfaceWrapper, ContactListener, ContactListenerWrapper, JobSystem,
-    ObjectLayerPairFilter, ObjectLayerPairFilterWrapper, ObjectVsBroadPhaseLayerFilter,
-    ObjectVsBroadPhaseLayerFilterWrapper, TempAllocator,
+    narrow_phase::NarrowPhaseQuery, BodyActivationListener, BodyActivationListenerWrapper,
+    BodyInterface, BroadPhaseLayerInterface, BroadPhaseLayerInterfaceWrapper, ContactListener,
+    ContactListenerWrapper, JobSystem, ObjectLayerPairFilter, ObjectLayerPairFilterWrapper,
+    ObjectVsBroadPhaseLayerFilter, ObjectVsBroadPhaseLayerFilterWrapper, TempAllocator,
 };
 use jolt_sys::JPC_EPhysicsUpdateError;
 use mint::Vector3;
@@ -139,7 +139,12 @@ impl PhysicsSystem {
     }
 
     // TODO: GetBodyLockInterface, GetBodyLockInterfaceNoLock
-    // TODO: GetNarrowPhaseQuery, GetNarrowPhaseQueryNoLock
+
+    pub fn narrow_phase_query<'a>(&'a self) -> NarrowPhaseQuery<'a> {
+        NarrowPhaseQuery::from(unsafe {
+            jolt_sys::JPC_PhysicsSystem_GetNarrowPhaseQuery(self.inner)
+        })
+    }
 }
 
 impl Drop for PhysicsSystem {
