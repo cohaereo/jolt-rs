@@ -5,6 +5,12 @@ use crate::{HasShapeSettings, ShapeSettings};
 #[repr(transparent)]
 pub struct StaticCompoundShapeSettings(ShapeSettings);
 
+impl Default for StaticCompoundShapeSettings {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StaticCompoundShapeSettings {
     pub fn new() -> Self {
         unsafe {

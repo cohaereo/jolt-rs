@@ -1,8 +1,7 @@
-use crate::{Body, CollideShapeResult, ContactManifold, ContactSettings, SubShapeIDPair};
+use crate::{Body, CollideShapeResult, ContactManifold, ContactSettings, Real, SubShapeIDPair};
 use jolt_sys::{
-    JPC_Body, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings, JPC_Real,
-    JPC_SubShapeIDPair, JPC_ValidateResult,
-    JPC_ValidateResult_JPC_VALIDATE_RESULT_ACCEPT_ALL_CONTACTS,
+    JPC_Body, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings, JPC_SubShapeIDPair,
+    JPC_ValidateResult, JPC_ValidateResult_JPC_VALIDATE_RESULT_ACCEPT_ALL_CONTACTS,
     JPC_ValidateResult_JPC_VALIDATE_RESULT_ACCEPT_CONTACT,
     JPC_ValidateResult_JPC_VALIDATE_RESULT_REJECT_ALL_CONTACTS,
     JPC_ValidateResult_JPC_VALIDATE_RESULT_REJECT_CONTACT,
@@ -74,7 +73,7 @@ impl ContactListenerWrapper {
         wrapper: *mut c_void,
         in_body1: *const JPC_Body,
         in_body2: *const JPC_Body,
-        in_base_offset: *const JPC_Real,
+        in_base_offset: *const Real,
         in_collision_result: *const JPC_CollideShapeResult,
     ) -> JPC_ValidateResult {
         (*(wrapper as *const Self)).inner.on_contact_validate(

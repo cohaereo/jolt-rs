@@ -1,7 +1,9 @@
-use crate::{AllowedDOFs, MassProperties, MotionQuality, MotionType, ObjectLayer, Shape, Vec3Ext};
+use crate::{
+    AllowedDOFs, MassProperties, MotionQuality, MotionType, ObjectLayer, Real, Shape, Vec3Ext,
+};
 use jolt_sys::{
-    JPC_CollisionGroup,  JPC_ObjectLayer,
-    JPC_Real, JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
+    JPC_CollisionGroup, JPC_ObjectLayer, JPC_COLLISION_GROUP_INVALID_GROUP,
+    JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
 };
 use mint::{Point3, Quaternion, Vector3};
 use std::ptr::null;
@@ -24,7 +26,7 @@ pub enum OverrideMassProperties {
 
 #[derive(Clone)]
 pub struct BodyCreationSettings {
-    pub position: Point3<JPC_Real>,
+    pub position: Point3<Real>,
     pub rotation: Quaternion<f32>,
     pub linear_velocity: Vector3<f32>,
     pub angular_velocity: Vector3<f32>,
@@ -65,13 +67,13 @@ impl BodyCreationSettings {
         object_layer: JPC_ObjectLayer,
     ) -> BodyCreationSettings
     where
-        P: Into<Point3<JPC_Real>>,
+        P: Into<Point3<Real>>,
         R: Into<Quaternion<f32>>,
     {
         let p = position.into();
         Self {
             shape,
-            position: p.into(),
+            position: p,
             rotation: rotation.into(),
             motion_type,
             object_layer,

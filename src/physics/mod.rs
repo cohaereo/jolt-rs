@@ -9,6 +9,11 @@ pub use body_interface::*;
 pub use collision::*;
 pub use physics_system::*;
 
+/// Type alias for the real number type used in Jolt Physics. This is typically used in positions.
+///
+/// Currently only `f32`.
+pub type Real = jolt_sys::JPC_Real;
+
 #[repr(u8)]
 #[derive(Copy, Clone)]
 pub enum Activation {
