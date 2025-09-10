@@ -122,7 +122,6 @@ impl PhysicsSystem {
         &self,
         delta_time: f32,
         collision_steps: i32,
-        integration_sub_steps: i32,
         temp_allocator: &mut TempAllocator,
         job_system: &mut JobSystem,
     ) -> JPC_EPhysicsUpdateError {
@@ -131,7 +130,6 @@ impl PhysicsSystem {
                 self.inner,
                 delta_time,
                 collision_steps,
-                integration_sub_steps,
                 temp_allocator.as_ptr(),
                 job_system.as_ptr(),
             ) as _

@@ -1,8 +1,6 @@
 use crate::{core::Vec3Ext, MotionQuality, MotionType, ObjectLayer, Shape};
 use jolt_sys::{
-    JPC_BodyCreationSettings, JPC_CollisionGroup, JPC_MassProperties, JPC_ObjectLayer,
-    JPC_OverrideMassProperties, JPC_COLLISION_GROUP_INVALID_GROUP,
-    JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
+    JPC_AllowedDOFs, JPC_BodyCreationSettings, JPC_CollisionGroup, JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL, JPC_MassProperties, JPC_MotionQuality, JPC_MotionType, JPC_ObjectLayer, JPC_OverrideMassProperties, JPC_Real, JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP
 };
 use mint::{Point3, Quaternion};
 use std::ptr::null;
@@ -18,16 +16,18 @@ pub use jolt_sys::{
 #[repr(align(16))]
 #[derive(Clone)]
 pub struct BodyCreationSettings {
-    pub position: [f32; 4],
-    pub rotation: [f32; 4],
-    pub linear_velocity: [f32; 4],
-    pub angular_velocity: [f32; 4],
+    pub position: [JPC_Real; 4usize],
+    pub rotation: [f32; 4usize],
+    pub linear_velocity: [f32; 4usize],
+    pub angular_velocity: [f32; 4usize],
     pub user_data: u64,
-    pub object_layer: ObjectLayer,
+    pub object_layer: JPC_ObjectLayer,
     pub collision_group: JPC_CollisionGroup,
     pub motion_type: MotionType,
+    pub allowed_dofs: JPC_AllowedDOFs,
     pub allow_dynamic_or_kinematic: bool,
     pub is_sensor: bool,
+    pub sensor_detects_static: bool,
     pub use_manifold_reduction: bool,
     pub motion_quality: MotionQuality,
     pub allow_sleeping: bool,
@@ -84,8 +84,10 @@ impl BodyCreationSettings {
                 group_id: JPC_COLLISION_GROUP_INVALID_GROUP,
                 sub_group_id: JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
             },
+            allowed_dofs: JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL as _,
             allow_dynamic_or_kinematic: true,
             is_sensor: false,
+            sensor_detects_static: false,
             use_manifold_reduction: true,
             motion_quality: MotionQuality::Discrete,
             allow_sleeping: true,

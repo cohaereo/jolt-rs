@@ -27,6 +27,7 @@
 #include <Jolt/Physics/Collision/Shape/TaperedCapsuleShape.h>
 #include <Jolt/Physics/Collision/Shape/CylinderShape.h>
 #include <Jolt/Physics/Collision/Shape/ConvexHullShape.h>
+#include <Jolt/Physics/Body/AllowedDOFs.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
 #include <Jolt/Physics/Body/BodyActivationListener.h>
 #include <Jolt/Physics/Body/BodyLock.h>
@@ -91,9 +92,11 @@ JPC_PhysicsSystem_GetActiveBodyIDs(const JPC_PhysicsSystem *in_physics_system,
 
     if (out_num_body_ids) *out_num_body_ids = 0;
 
-    for (uint32_t i = 0; i < physics_system->mBodyManager.mNumActiveBodies; ++i)
+    // TODO(cohae): Soft body support
+    auto body_type = JPH::EBodyType::RigidBody;
+    for (uint32_t i = 0; i < physics_system->mBodyManager.mNumActiveBodies[(int)body_type]; ++i)
     {
-        const JPH::BodyID body_id = physics_system->mBodyManager.mActiveBodies[i];
+        const JPH::BodyID body_id = physics_system->mBodyManager.mActiveBodies[(int)body_type][i];
         *out_body_ids = body_id.GetIndexAndSequenceNumber();
         out_body_ids += 1;
         if (out_num_body_ids) *out_num_body_ids += 1;
@@ -126,6 +129,7 @@ ENSURE_SIZE_ALIGN(JPH::EMotionQuality,          JPC_MotionQuality)
 ENSURE_SIZE_ALIGN(JPH::EBackFaceMode,           JPC_BackFaceMode)
 ENSURE_SIZE_ALIGN(JPH::EOverrideMassProperties, JPC_OverrideMassProperties)
 ENSURE_SIZE_ALIGN(JPH::EActivation,             JPC_Activation)
+ENSURE_SIZE_ALIGN(JPH::EAllowedDOFs,            JPC_AllowedDOFs)
 ENSURE_SIZE_ALIGN(JPH::ValidateResult,          JPC_ValidateResult)
 ENSURE_SIZE_ALIGN(JPH::BroadPhaseLayer,         JPC_BroadPhaseLayer)
 ENSURE_SIZE_ALIGN(JPH::ObjectLayer,             JPC_ObjectLayer)
@@ -158,6 +162,7 @@ ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_COMPOUND,     JPH::EShapeType::Compound);
 ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_DECORATED,    JPH::EShapeType::Decorated);
 ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_MESH,         JPH::EShapeType::Mesh);
 ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_HEIGHT_FIELD, JPH::EShapeType::HeightField);
+ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_SOFT_BODY,    JPH::EShapeType::SoftBody);
 ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_USER1,        JPH::EShapeType::User1);
 ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_USER2,        JPH::EShapeType::User2);
 ENSURE_ENUM_EQ(JPC_SHAPE_TYPE_USER3,        JPH::EShapeType::User3);
@@ -225,6 +230,9 @@ ENSURE_ENUM_EQ(JPC_MAX_PHYSICS_BARRIERS, JPH::cMaxPhysicsBarriers);
 
 ENSURE_ENUM_EQ(JPC_BACK_FACE_IGNORE,  JPH::EBackFaceMode::IgnoreBackFaces);
 ENSURE_ENUM_EQ(JPC_BACK_FACE_COLLIDE, JPH::EBackFaceMode::CollideWithBackFaces);
+
+ENSURE_ENUM_EQ(JPC_BODY_TYPE_RIGIDBODY, JPH::EBodyType::RigidBody);
+ENSURE_ENUM_EQ(JPC_BODY_TYPE_SOFTBODY,  JPH::EBodyType::SoftBody);
 //--------------------------------------------------------------------------------------------------
 static_assert(
     offsetof(JPH::BodyCreationSettings, mInertiaMultiplier) ==
@@ -260,7 +268,10 @@ static_assert(offsetof(JPH::MotionProperties, mForce) == offsetof(JPC_MotionProp
 static_assert(offsetof(JPH::MotionProperties, mTorque) == offsetof(JPC_MotionProperties, torque));
 static_assert(offsetof(JPH::MotionProperties, mMotionQuality) == offsetof(JPC_MotionProperties, motion_quality));
 static_assert(offsetof(JPH::MotionProperties, mGravityFactor) == offsetof(JPC_MotionProperties, gravity_factor));
+static_assert(offsetof(JPH::MotionProperties, mAllowedDOFs) == offsetof(JPC_MotionProperties, allowed_dofs));
 #if JPC_ENABLE_ASSERTS == 1
+static_assert(
+    offsetof(JPH::MotionProperties, mCachedBodyType) == offsetof(JPC_MotionProperties, cached_body_type));
 static_assert(
     offsetof(JPH::MotionProperties, mCachedMotionType) == offsetof(JPC_MotionProperties, cached_motion_type));
 #endif
@@ -276,6 +287,7 @@ static_assert(offsetof(JPH::CollisionGroup, mGroupID) == offsetof(JPC_CollisionG
 static_assert(offsetof(JPH::Body, mFlags) == offsetof(JPC_Body, flags));
 static_assert(offsetof(JPH::Body, mMotionProperties) == offsetof(JPC_Body, motion_properties));
 static_assert(offsetof(JPH::Body, mObjectLayer) == offsetof(JPC_Body, object_layer));
+static_assert(offsetof(JPH::Body, mBodyType) == offsetof(JPC_Body, body_type));
 static_assert(offsetof(JPH::Body, mRotation) == offsetof(JPC_Body, rotation));
 static_assert(offsetof(JPH::Body, mID) == offsetof(JPC_Body, id));
 

@@ -82,10 +82,12 @@ typedef enum JPC_EShapeType
     JPC_SHAPE_TYPE_DECORATED    = 2,
     JPC_SHAPE_TYPE_MESH         = 3,
     JPC_SHAPE_TYPE_HEIGHT_FIELD = 4,
-    JPC_SHAPE_TYPE_USER1        = 5,
-    JPC_SHAPE_TYPE_USER2        = 6,
-    JPC_SHAPE_TYPE_USER3        = 7,
-    JPC_SHAPE_TYPE_USER4        = 8
+    JPC_SHAPE_TYPE_SOFT_BODY    = 5,
+
+    JPC_SHAPE_TYPE_USER1        = 6,
+    JPC_SHAPE_TYPE_USER2        = 7,
+    JPC_SHAPE_TYPE_USER3        = 8,
+    JPC_SHAPE_TYPE_USER4        = 9
 } JPC_EShapeType;
 
 typedef uint8_t JPC_ShapeSubType;
@@ -105,22 +107,24 @@ typedef enum JPC_EShapeSubType
     JPC_SHAPE_SUB_TYPE_OFFSET_CENTER_OF_MASS = 11,
     JPC_SHAPE_SUB_TYPE_MESH                  = 12,
     JPC_SHAPE_SUB_TYPE_HEIGHT_FIELD          = 13,
-    JPC_SHAPE_SUB_TYPE_USER1                 = 14,
-    JPC_SHAPE_SUB_TYPE_USER2                 = 15,
-    JPC_SHAPE_SUB_TYPE_USER3                 = 16,
-    JPC_SHAPE_SUB_TYPE_USER4                 = 17,
-    JPC_SHAPE_SUB_TYPE_USER5                 = 18,
-    JPC_SHAPE_SUB_TYPE_USER6                 = 19,
-    JPC_SHAPE_SUB_TYPE_USER7                 = 20,
-    JPC_SHAPE_SUB_TYPE_USER8                 = 21,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX1          = 22,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX2          = 23,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX3          = 24,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX4          = 25,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX5          = 26,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX6          = 27,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX7          = 28,
-    JPC_SHAPE_SUB_TYPE_USER_CONVEX8          = 29,
+    JPC_SHAPE_SUB_TYPE_SOFT_BODY             = 14,
+
+    JPC_SHAPE_SUB_TYPE_USER1                 = 15,
+    JPC_SHAPE_SUB_TYPE_USER2                 = 16,
+    JPC_SHAPE_SUB_TYPE_USER3                 = 17,
+    JPC_SHAPE_SUB_TYPE_USER4                 = 18,
+    JPC_SHAPE_SUB_TYPE_USER5                 = 19,
+    JPC_SHAPE_SUB_TYPE_USER6                 = 20,
+    JPC_SHAPE_SUB_TYPE_USER7                 = 21,
+    JPC_SHAPE_SUB_TYPE_USER8                 = 22,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX1          = 23,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX2          = 24,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX3          = 25,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX4          = 26,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX5          = 27,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX6          = 28,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX7          = 29,
+    JPC_SHAPE_SUB_TYPE_USER_CONVEX8          = 30,
 } JPC_EShapeSubType;
 
 typedef enum JPC_ConstraintType
@@ -232,6 +236,24 @@ typedef enum JPC_EFeatures {
     JPC_FEATURE_FLOATING_POINT_EXCEPTIONS = (1 << 13),
     JPC_FEATURE_DEBUG = (1 << 14),
 } JPC_EFeatures;
+
+typedef uint8_t JPC_AllowedDOFs;
+typedef enum JPC_EAllowedDOFs {
+    JPC_ALLOWED_DOFS_NONE				= 0b000000,
+    JPC_ALLOWED_DOFS_ALL				= 0b111111,
+    JPC_ALLOWED_DOFS_TRANSLATIONX		= 0b000001,
+    JPC_ALLOWED_DOFS_TRANSLATIONY		= 0b000010,
+    JPC_ALLOWED_DOFS_TRANSLATIONZ		= 0b000100,
+    JPC_ALLOWED_DOFS_ROTATIONX			= 0b001000,
+    JPC_ALLOWED_DOFS_ROTATIONY			= 0b010000,
+    JPC_ALLOWED_DOFS_ROTATIONZ			= 0b100000,
+} JPC_EAllowedDOFs;
+
+typedef uint8_t JPC_BodyType;
+typedef enum JPC_EBodyType {
+    JPC_BODY_TYPE_RIGIDBODY	= 0,
+    JPC_BODY_TYPE_SOFTBODY	= 1,
+} JPC_EBodyType;
 
 #if JPC_DEBUG_RENDERER == 1
 typedef enum JPC_DebugRendererResult {
@@ -369,6 +391,7 @@ typedef struct JPC_MotionProperties
 
     JPC_MotionQuality  motion_quality;
     bool               allow_sleeping;
+    JPC_AllowedDOFs    allowed_dofs;
 
 #if JPC_DOUBLE_PRECISION == 1
     alignas(8) uint8_t reserved[76];
@@ -377,7 +400,8 @@ typedef struct JPC_MotionProperties
 #endif
 
 #if JPC_ENABLE_ASSERTS == 1
-    JPC_MotionType     cached_motion_type;
+    JPC_BodyType    cached_body_type;
+    JPC_MotionType  cached_motion_type;
 #endif
 } JPC_MotionProperties;
 
@@ -400,8 +424,10 @@ typedef struct JPC_BodyCreationSettings
     JPC_ObjectLayer            object_layer;
     JPC_CollisionGroup         collision_group;
     JPC_MotionType             motion_type;
+    JPC_AllowedDOFs            allowed_dofs;
     bool                       allow_dynamic_or_kinematic;
     bool                       is_sensor;
+    bool                       sensor_detects_static;
     bool                       use_manifold_reduction;
     JPC_MotionQuality          motion_quality;
     bool                       allow_sleeping;
@@ -438,6 +464,7 @@ typedef struct JPC_Body
 
     JPC_ObjectLayer         object_layer;
 
+    JPC_BodyType            body_type;
     JPC_BroadPhaseLayer     broad_phase_layer;
     JPC_MotionType          motion_type;
     uint8_t                 flags;
@@ -529,7 +556,13 @@ typedef struct JPC_ContactSettings
 {
     float combined_friction;
     float combined_restitution;
+    float inv_mass_scale1;
+    float inv_inertia_scale1;
+    float inv_mass_scale2;
+    float inv_inertia_scale2;
     bool  is_sensor;
+    alignas(16) float relative_linear_surface_velocity[4]; // 4th element is ignored
+    alignas(16) float relative_angular_surface_velocity[4]; // 4th element is ignored
 } JPC_ContactSettings;
 
 // NOTE: Needs to be kept in sync with JPH::CollideShapeResult
@@ -1181,7 +1214,6 @@ JPC_API JPC_PhysicsUpdateError
 JPC_PhysicsSystem_Update(JPC_PhysicsSystem *in_physics_system,
                          float in_delta_time,
                          int in_collision_steps,
-                         int in_integration_sub_steps,
                          JPC_TempAllocator *in_temp_allocator,
                          JPC_JobSystem *in_job_system);
 

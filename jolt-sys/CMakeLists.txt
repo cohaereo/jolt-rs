@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 
-project(JoltRs CXX)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+project(JoltPhysics CXX)
 
 # When turning this option on, the library will be compiled using doubles for positions. This allows for much bigger worlds.
 option(DOUBLE_PRECISION "Use double precision math" OFF)
 
 # When turning this option on, the library will be compiled with debug symbols
 option(GENERATE_DEBUG_SYMBOLS "Generate debug symbols" ON)
+
+# When turning this option on, the library will override the default CMAKE_CXX_FLAGS_DEBUG/RELEASE values, otherwise they will use the platform defaults
+option(OVERRIDE_CXX_FLAGS "Override CMAKE_CXX_FLAGS_DEBUG/RELEASE" ON)
 
 # When turning this option on, the library will be compiled in such a way to attempt to keep the simulation deterministic across platforms
 option(CROSS_PLATFORM_DETERMINISTIC "Cross platform deterministic" OFF)
@@ -17,7 +18,7 @@ option(CROSS_PLATFORM_DETERMINISTIC "Cross platform deterministic" OFF)
 option(CROSS_COMPILE_ARM "Cross compile to aarch64-linux-gnu" OFF)
 
 # When turning this option on, Jolt will be compiled as a shared library and public symbols will be exported.
-option(COMPILE_AS_SHARED_LIBRARY "Compile Jolt as a shared library" OFF)
+option(BUILD_SHARED_LIBS "Compile Jolt as a shared library" OFF)
 
 # When turning this option on, the library will be compiled with interprocedural optimizations enabled, also known as link-time optimizations or link-time code generation.
 # Note that if you turn this on you need to use SET_INTERPROCEDURAL_OPTIMIZATION() or set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON) to enable LTO specificly for your own project as well.
@@ -46,6 +47,12 @@ option(USE_FMADD "Enable FMADD" ON)
 # Enable all warnings
 option(ENABLE_ALL_WARNINGS "Enable all warnings and warnings as errors" ON)
 
+# Setting to periodically trace broadphase stats to help determine if the broadphase layer configuration is optimal
+option(TRACK_BROADPHASE_STATS "Track Broadphase Stats" OFF)
+
+# Setting to periodically trace narrowphase stats to help determine which collision queries could be optimized
+option(TRACK_NARROWPHASE_STATS "Track Narrowphase Stats" OFF)
+
 include(CMakeDependentOption)
 
 # Ability to toggle between the static and DLL versions of the MSVC runtime library
@@ -59,7 +66,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}
 	set(CMAKE_CONFIGURATION_TYPES "Debug;Release;ReleaseASAN;ReleaseUBSAN;ReleaseCoverage;Distribution")
 endif()
 
-if (("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "WindowsStore") AND NOT MINGW)
+if (MSVC)
 	# Fill in the path to the asan libraries
 	set(CLANG_LIB_PATH "\"$(VSInstallDir)\\VC\\Tools\\Llvm\\x64\\lib\\clang\\${CMAKE_CXX_COMPILER_VERSION}\\lib\\windows\"")
 
@@ -104,7 +111,10 @@ if (("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR "${CMAKE_SYSTEM_NAME}" STREQUA
 	set(CMAKE_CXX_FLAGS_RELEASECOVERAGE "-fprofile-instr-generate -fcoverage-mapping")
 
 	# Set linker flags
-	set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS /ignore:4221 /DEBUG:FASTLINK")
+	set(CMAKE_EXE_LINKER_FLAGS "/SUBSYSTEM:WINDOWS /ignore:4221")
+	if (GENERATE_DEBUG_SYMBOLS)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEBUG")
+	endif()
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 		if (CROSS_PLATFORM_DETERMINISTIC)
 			set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fp:precise")
@@ -118,13 +128,10 @@ if (("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR "${CMAKE_SYSTEM_NAME}" STREQUA
 		set(CMAKE_EXE_LINKER_FLAGS_RELEASEUBSAN "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LIBPATH:${CLANG_LIB_PATH}")
 		set(CMAKE_EXE_LINKER_FLAGS_RELEASECOVERAGE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LIBPATH:${CLANG_LIB_PATH}")
 	endif()
-elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" OR "${CMAKE_SYSTEM_NAME}" STREQUAL "iOS" OR MINGW OR EMSCRIPTEN)
-	# Set general compiler flags
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I. -fPIC")
-
+else()
 	# Enable warnings
 	if (ENABLE_ALL_WARNINGS)
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-unused-function -Wno-unused-variable")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror")
 	endif()
 
 	# Optionally generate debug symbols
@@ -133,10 +140,9 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" OR "${CMAKE_SYSTEM_NAME}" STREQU
 	endif()
 
 	if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-		# Somehow -Wcomment doesn't want to be turned off from code and we need this because Doxygen MathJax uses it
 		# Also disable -Wstringop-overflow or it will generate false positives that can't be disabled from code when link-time optimizations are enabled
 		# Also turn off automatic fused multiply add contractions, there doesn't seem to be a way to do this selectively through the macro JPH_PRECISE_MATH_OFF
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-comment -Wno-stringop-overflow -ffp-contract=off")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-stringop-overflow -ffp-contract=off")
 	else()
 		# Do not use -ffast-math since it cannot be turned off in a single compilation unit under clang, see Core.h
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffp-model=precise")
@@ -153,20 +159,23 @@ elseif ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" OR "${CMAKE_SYSTEM_NAME}" STREQU
 	endif()
 
 	# Set compiler flags for various configurations
-	set(CMAKE_CXX_FLAGS_DEBUG "")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-	set(CMAKE_CXX_FLAGS_DISTRIBUTION "-O3")
+	if (OVERRIDE_CXX_FLAGS)
+		set(CMAKE_CXX_FLAGS_DEBUG "")
+		set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	endif()
+	set(CMAKE_CXX_FLAGS_DISTRIBUTION "${CMAKE_CXX_FLAGS_RELEASE}")
 	set(CMAKE_CXX_FLAGS_RELEASEASAN "-fsanitize=address")
 	set(CMAKE_CXX_FLAGS_RELEASEUBSAN "-fsanitize=undefined,implicit-conversion,float-divide-by-zero,local-bounds -fno-sanitize-recover=all")
-	set(CMAKE_CXX_FLAGS_RELEASECOVERAGE "-fprofile-instr-generate -fcoverage-mapping")
+	set(CMAKE_CXX_FLAGS_RELEASECOVERAGE "-O0 -DJPH_NO_FORCE_INLINE -fprofile-instr-generate -fcoverage-mapping")
 
 	# Set linker flags
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
+	if (NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows"))
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
+	endif()
 endif()
 
 # Set linker flags
 set(CMAKE_EXE_LINKER_FLAGS_DISTRIBUTION "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
-set(CMAKE_SHARED_LINKER_FLAGS_DISTRIBUTION "${CMAKE_EXE_LINKER_FLAGS_RELEASE}")
 
 # Enable link time optimization in Release and Distribution mode if requested and available
 function(SET_INTERPROCEDURAL_OPTIMIZATION)
@@ -193,8 +202,8 @@ set(PHYSICS_REPO_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/Jolt)
 
 # Make Jolt Library
 include(${CMAKE_CURRENT_SOURCE_DIR}/Jolt.cmake)
-if (IOS)
-	# Ensure that we enable SSE4.2 for the x86_64 build, CMAKE_SYSTEM_PROCESSOR is not set for iOS
+if (XCODE)
+	# Ensure that we enable SSE4.2 for the x86_64 build, XCode builds multiple architectures
 	set_property(TARGET Jolt PROPERTY XCODE_ATTRIBUTE_OTHER_CPLUSPLUSFLAGS[arch=x86_64] "$(inherited) -msse4.2 -mpopcnt")
 endif()
 

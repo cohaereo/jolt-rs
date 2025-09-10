@@ -208,13 +208,9 @@ fn main() {
         // If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable. Do 1 collision step per 1 / 60th of a second (round up).
         const COLLISION_STEPS: i32 = 1;
 
-        // If you want more accurate step results you can do multiple sub steps within a collision step. Usually you would set this to 1.
-        const INTEGRATION_SUBSTEPS: i32 = 1;
-
         physics_system.update(
             1. / 60.,
             COLLISION_STEPS,
-            INTEGRATION_SUBSTEPS,
             &mut temp_allocator,
             &mut job_system,
         );
