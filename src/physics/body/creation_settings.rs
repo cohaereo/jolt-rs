@@ -1,8 +1,10 @@
-use crate::{core::Vec3Ext, MotionQuality, MotionType, ObjectLayer, Shape};
+use crate::{MotionQuality, MotionType, ObjectLayer, Shape, Vec3Ext};
 use jolt_sys::{
-    JPC_AllowedDOFs, JPC_BodyCreationSettings, JPC_CollisionGroup, JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL, JPC_MassProperties, JPC_MotionQuality, JPC_MotionType, JPC_ObjectLayer, JPC_OverrideMassProperties, JPC_Real, JPC_COLLISION_GROUP_INVALID_GROUP, JPC_COLLISION_GROUP_INVALID_SUB_GROUP
+    JPC_AllowedDOFs, JPC_CollisionGroup, JPC_EAllowedDOFs_JPC_ALLOWED_DOFS_ALL, JPC_MassProperties,
+    JPC_ObjectLayer, JPC_OverrideMassProperties, JPC_Real, JPC_COLLISION_GROUP_INVALID_GROUP,
+    JPC_COLLISION_GROUP_INVALID_SUB_GROUP,
 };
-use mint::{Point3, Quaternion};
+use mint::{Point3, Quaternion, Vector3};
 use std::ptr::null;
 
 pub use jolt_sys::{
@@ -11,17 +13,14 @@ pub use jolt_sys::{
     JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_MASS_INERTIA_PROVIDED,
 };
 
-// TODO(cohae): For the sake of safety and compatibility, this should be a native rust struct that we can map to JPC_BodyCreationSettings
-#[repr(C)]
-#[repr(align(16))]
 #[derive(Clone)]
 pub struct BodyCreationSettings {
-    pub position: [JPC_Real; 4usize],
-    pub rotation: [f32; 4usize],
-    pub linear_velocity: [f32; 4usize],
-    pub angular_velocity: [f32; 4usize],
+    pub position: Point3<JPC_Real>,
+    pub rotation: Quaternion<f32>,
+    pub linear_velocity: Vector3<f32>,
+    pub angular_velocity: Vector3<f32>,
     pub user_data: u64,
-    pub object_layer: JPC_ObjectLayer,
+    pub object_layer: ObjectLayer,
     pub collision_group: JPC_CollisionGroup,
     pub motion_type: MotionType,
     pub allowed_dofs: JPC_AllowedDOFs,
@@ -40,20 +39,8 @@ pub struct BodyCreationSettings {
     pub gravity_factor: f32,
     pub override_mass_properties: JPC_OverrideMassProperties,
     pub inertia_multiplier: f32,
-    __bindgen_padding_0: [u64; 0usize],
     pub mass_properties_override: JPC_MassProperties,
-    reserved: *const ::std::os::raw::c_void,
     pub shape: Shape,
-}
-
-#[test]
-#[allow(non_snake_case)]
-fn test_layout_BodyCreationSettings() {
-    assert_eq!(
-        ::std::mem::size_of::<BodyCreationSettings>(),
-        240usize,
-        concat!("Size of: ", stringify!(JPC_BodyCreationSettings))
-    );
 }
 
 impl BodyCreationSettings {
@@ -65,19 +52,19 @@ impl BodyCreationSettings {
         object_layer: JPC_ObjectLayer,
     ) -> BodyCreationSettings
     where
-        P: Into<Point3<f32>>,
+        P: Into<Point3<JPC_Real>>,
         R: Into<Quaternion<f32>>,
     {
         let p = position.into();
         Self {
             shape,
-            position: p.to_fixed_vec3(),
-            rotation: *rotation.into().as_ref(),
+            position: p.into(),
+            rotation: rotation.into(),
             motion_type,
             object_layer,
 
-            linear_velocity: [0.; 4],
-            angular_velocity: [0.; 4],
+            linear_velocity: Vector3::from_slice(&[0f32; 4]),
+            angular_velocity: Vector3::from_slice(&[0f32; 4]),
             user_data: 0,
             collision_group: JPC_CollisionGroup {
                 filter: null(),
@@ -101,15 +88,40 @@ impl BodyCreationSettings {
             override_mass_properties:
                 JPC_EOverrideMassProperties_JPC_OVERRIDE_MASS_PROPS_CALC_MASS_INERTIA as _,
             inertia_multiplier: 1.0,
-            __bindgen_padding_0: [0; 0],
             mass_properties_override: unsafe { std::mem::zeroed() },
-            reserved: null(),
         }
     }
 
-    pub fn as_jpc(&self) -> *const jolt_sys::JPC_BodyCreationSettings {
-        self as *const _ as _
+    pub(crate) fn to_jpc(&self) -> jolt_sys::JPC_BodyCreationSettings {
+        jolt_sys::JPC_BodyCreationSettings {
+            position: self.position.to_fixed_vec3(),
+            rotation: self.rotation.into(),
+            linear_velocity: self.linear_velocity.to_fixed_vec3(),
+            angular_velocity: self.angular_velocity.to_fixed_vec3(),
+            user_data: self.user_data,
+            object_layer: self.object_layer,
+            collision_group: self.collision_group,
+            motion_type: self.motion_type as u8,
+            allowed_dofs: self.allowed_dofs,
+            allow_dynamic_or_kinematic: self.allow_dynamic_or_kinematic,
+            is_sensor: self.is_sensor,
+            sensor_detects_static: self.sensor_detects_static,
+            use_manifold_reduction: self.use_manifold_reduction,
+            motion_quality: self.motion_quality as u8,
+            allow_sleeping: self.allow_sleeping,
+            friction: self.friction,
+            restitution: self.restitution,
+            linear_damping: self.linear_damping,
+            angular_damping: self.angular_damping,
+            max_linear_velocity: self.max_linear_velocity,
+            max_angular_velocity: self.max_angular_velocity,
+            gravity_factor: self.gravity_factor,
+            override_mass_properties: self.override_mass_properties,
+            inertia_multiplier: self.inertia_multiplier,
+            __bindgen_padding_0: [0; 0],
+            mass_properties_override: self.mass_properties_override,
+            reserved: std::ptr::null(),
+            shape: self.shape.as_raw(),
+        }
     }
 }
-
-unsafe impl Send for BodyCreationSettings {}

@@ -1,8 +1,8 @@
 use std::ffi::c_void;
 
-use mint::{Quaternion, Vector3};
+use mint::Vector3;
 
-use crate::{HasShapeSettings, Shape, ShapeSettings};
+use crate::{HasShapeSettings, ShapeSettings};
 
 #[repr(transparent)]
 pub struct ConvexHullShapeSettings(ShapeSettings);

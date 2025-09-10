@@ -1,5 +1,4 @@
-use crate::{shape::shape_settings::ShapeSettings, HasShapeSettings, Shape};
-use mint::Vector3;
+use crate::{shape::shape_settings::ShapeSettings, HasShapeSettings};
 
 #[repr(transparent)]
 pub struct CylinderShapeSettings(ShapeSettings);

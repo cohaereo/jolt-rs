@@ -1,4 +1,4 @@
-use mint::{Point3, Vector3};
+use mint::Vector3;
 
 pub trait Vec3Ext {
     fn to_fixed_vec3(self) -> [f32; 4];

@@ -29,8 +29,12 @@ pub type SubShapeIDPair = jolt_sys::JPC_SubShapeIDPair;
 pub struct Shape(NonNull<jolt_sys::JPC_Shape>);
 
 impl Shape {
-    pub fn from_raw(inner: *mut jolt_sys::JPC_Shape) -> Self {
+    pub(crate) fn from_raw(inner: *mut jolt_sys::JPC_Shape) -> Self {
         Self(NonNull::new(inner).expect("Shape pointer is NULL"))
+    }
+
+    pub(crate) fn as_raw(&self) -> *mut jolt_sys::JPC_Shape {
+        self.0.as_ptr()
     }
 
     pub fn center_of_mass(&self) -> Vector3<f32> {

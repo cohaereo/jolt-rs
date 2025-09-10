@@ -1,5 +1,5 @@
 use glam::{vec3, Quat, Vec3};
-use jolt::{HasShapeSettings, ShapeSettings};
+use jolt::HasShapeSettings;
 
 const OLAYER_NON_MOVING: jolt::ObjectLayer = 0;
 const OLAYER_MOVING: jolt::ObjectLayer = 1;

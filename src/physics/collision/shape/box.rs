@@ -1,4 +1,4 @@
-use crate::{shape::shape_settings::ShapeSettings, HasShapeSettings, Shape};
+use crate::{shape::shape_settings::ShapeSettings, HasShapeSettings};
 use mint::Vector3;
 
 #[repr(transparent)]

@@ -15,7 +15,7 @@ impl<'a> From<*mut jolt_sys::JPC_BodyInterface> for BodyInterface<'a> {
 impl<'a> BodyInterface<'a> {
     pub fn create_body(&self, body_settings: &BodyCreationSettings) -> Option<*mut Body> {
         unsafe {
-            let body_id = jolt_sys::JPC_BodyInterface_CreateBody(self.0, body_settings.as_jpc());
+            let body_id = jolt_sys::JPC_BodyInterface_CreateBody(self.0, &body_settings.to_jpc());
             if body_id.is_null() {
                 None
             } else {
@@ -33,7 +33,7 @@ impl<'a> BodyInterface<'a> {
             let body_id = jolt_sys::JPC_BodyInterface_CreateBodyWithID(
                 self.0,
                 body_id,
-                body_settings.as_jpc(),
+                &body_settings.to_jpc(),
             );
             if body_id.is_null() {
                 None
@@ -69,7 +69,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_CreateAndAddBody(
                 self.0,
-                body_settings.as_jpc(),
+                &body_settings.to_jpc(),
                 activation as _,
             )
         }

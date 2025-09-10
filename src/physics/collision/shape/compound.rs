@@ -1,6 +1,6 @@
 use mint::{Quaternion, Vector3};
 
-use crate::{HasShapeSettings, Shape, ShapeSettings};
+use crate::{HasShapeSettings, ShapeSettings};
 
 #[repr(transparent)]
 pub struct StaticCompoundShapeSettings(ShapeSettings);

@@ -1,4 +1,4 @@
-use crate::{HasShapeSettings, Shape, ShapeSettings};
+use crate::{HasShapeSettings, ShapeSettings};
 
 #[repr(transparent)]
 pub struct SphereShapeSettings(ShapeSettings);
