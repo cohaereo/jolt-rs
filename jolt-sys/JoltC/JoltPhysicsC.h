@@ -11,7 +11,16 @@
 // Const
 //
 //--------------------------------------------------------------------------------------------------
-#define JPC_API extern __declspec(dllexport) // TODO: Define this properly
+#if defined(_MSC_VER)
+    //  Microsoft 
+    #define JPC_API extern __declspec(dllexport) // TODO: Define this properly
+#elif defined(__GNUC__)
+    //  GCC
+    #define JPC_API __attribute__((visibility("default")))
+#else
+    #define JPC_API
+    #error Unknown dynamic link import/export semantics.
+#endif
 
 // Always turn on asserts in Debug mode
 #if defined(_DEBUG) || defined(JPH_ENABLE_ASSERTS)
