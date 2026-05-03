@@ -21,7 +21,7 @@ fn main() {
         .define("USE_STATIC_MSVC_RUNTIME_LIBRARY", "OFF")
         // .build_target("JoltC")
         .profile(profile)
-        .build_target("ALL_BUILD")
+        .build_target("JoltC")
         .build();
 
     println!(
