@@ -309,6 +309,7 @@ set(JOLTC_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/JoltC)
 add_library(JoltC SHARED
   ${JOLTC_ROOT}/JoltPhysicsC.cpp
   ${JOLTC_ROOT}/JoltPhysicsC.h
-  ${JOLTC_ROOT}/JoltPhysicsC_Extensions.cpp)
+  # ${JOLTC_ROOT}/JoltPhysicsC_Extensions.cpp
+)
 target_include_directories(JoltC PUBLIC ${PHYSICS_REPO_ROOT})
 target_link_libraries(JoltC Jolt)

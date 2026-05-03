@@ -1245,19 +1245,19 @@ JPC_PhysicsSystem_GetNarrowPhaseQuery(const JPC_PhysicsSystem *in_physics_system
 JPC_API const JPC_NarrowPhaseQuery *
 JPC_PhysicsSystem_GetNarrowPhaseQueryNoLock(const JPC_PhysicsSystem *in_physics_system);
 
-/// Get copy of the list of all bodies under protection of a lock.
-JPC_API void
-JPC_PhysicsSystem_GetBodyIDs(const JPC_PhysicsSystem *in_physics_system,
-                             uint32_t in_max_body_ids,
-                             uint32_t *out_num_body_ids,
-                             JPC_BodyID *out_body_ids);
+// /// Get copy of the list of all bodies under protection of a lock.
+// JPC_API void
+// JPC_PhysicsSystem_GetBodyIDs(const JPC_PhysicsSystem *in_physics_system,
+//                              uint32_t in_max_body_ids,
+//                              uint32_t *out_num_body_ids,
+//                              JPC_BodyID *out_body_ids);
 
-/// Get copy of the list of active bodies under protection of a lock.
-JPC_API void
-JPC_PhysicsSystem_GetActiveBodyIDs(const JPC_PhysicsSystem *in_physics_system,
-                                   uint32_t in_max_body_ids,
-                                   uint32_t *out_num_body_ids,
-                                   JPC_BodyID *out_body_ids);
+// /// Get copy of the list of active bodies under protection of a lock.
+// JPC_API void
+// JPC_PhysicsSystem_GetActiveBodyIDs(const JPC_PhysicsSystem *in_physics_system,
+//                                    uint32_t in_max_body_ids,
+//                                    uint32_t *out_num_body_ids,
+//                                    JPC_BodyID *out_body_ids);
 ///
 /// Low-level access for advanced usage and zero CPU overhead (access *not* protected by a lock)
 ///
