@@ -17,7 +17,7 @@ pub struct BodyActivationListenerWrapper {
 impl BodyActivationListenerWrapper {
     pub fn new(inner: Box<dyn BodyActivationListener>) -> Self {
         let vtable = Box::new(jolt_sys::JPC_BodyActivationListenerVTable {
-            __vtable_header: [std::ptr::null()],
+            __vtable_header: [std::ptr::null(); _],
             OnBodyActivated: Some(Self::on_body_activated),
             OnBodyDeactivated: Some(Self::on_body_deactivated),
         });

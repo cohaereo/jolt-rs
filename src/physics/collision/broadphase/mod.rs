@@ -31,6 +31,7 @@ impl BroadPhaseLayerInterfaceWrapper {
         (*(wrapper as *const Self)).inner.num_broad_phase_layers()
     }
 
+    #[cfg(target_os = "windows")]
     unsafe extern "C" fn get_broad_phase_layer(
         wrapper: *const c_void,
         layer_out: *mut JPC_BroadPhaseLayer,
@@ -38,6 +39,14 @@ impl BroadPhaseLayerInterfaceWrapper {
     ) -> *const JPC_BroadPhaseLayer {
         *layer_out = (*(wrapper as *const Self)).inner.broad_phase_layer(layer);
         layer_out
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    unsafe extern "C" fn get_broad_phase_layer(
+        wrapper: *const c_void,
+        layer: JPC_ObjectLayer,
+    ) -> JPC_BroadPhaseLayer {
+        (*(wrapper as *const Self)).inner.broad_phase_layer(layer)
     }
 }
 
