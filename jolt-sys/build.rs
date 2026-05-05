@@ -19,6 +19,7 @@ fn main() {
     let dst = cfg
         .define("ENABLE_ALL_WARNINGS", "OFF")
         .define("USE_STATIC_MSVC_RUNTIME_LIBRARY", "OFF")
+        .define("INTERPROCEDURAL_OPTIMIZATION", "OFF")
         // .build_target("JoltC")
         .profile(profile)
         .build_target("JoltC")
