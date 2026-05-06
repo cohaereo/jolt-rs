@@ -33,9 +33,10 @@ impl BodyActivationListenerWrapper {
         in_body_id: *const JPC_BodyID,
         in_user_data: u64,
     ) {
-        (*(wrapper as *const Self))
-            .inner
-            .on_body_activated(*in_body_id.as_ref_expect("in_body_id"), in_user_data)
+        (*(wrapper as *const Self)).inner.on_body_activated(
+            *in_body_id.cast::<BodyId>().as_ref_expect("in_body_id"),
+            in_user_data,
+        )
     }
 
     unsafe extern "C" fn on_body_deactivated(
@@ -43,8 +44,9 @@ impl BodyActivationListenerWrapper {
         in_body_id: *const JPC_BodyID,
         in_user_data: u64,
     ) {
-        (*(wrapper as *const Self))
-            .inner
-            .on_body_deactivated(*in_body_id.as_ref_expect("in_body_id"), in_user_data)
+        (*(wrapper as *const Self)).inner.on_body_deactivated(
+            *in_body_id.cast::<BodyId>().as_ref_expect("in_body_id"),
+            in_user_data,
+        )
     }
 }

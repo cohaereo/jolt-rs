@@ -80,8 +80,8 @@ impl ContactListenerWrapper {
         in_collision_result: *const JPC_CollideShapeResult,
     ) -> JPC_ValidateResult {
         (*(wrapper as *const Self)).inner.on_contact_validate(
-            in_body1.as_ref_expect("in_body1"),
-            in_body2.as_ref_expect("in_body2"),
+            in_body1.cast::<Body>().as_ref_expect("in_body1"),
+            in_body2.cast::<Body>().as_ref_expect("in_body2"),
             *(in_base_offset as *const Vector3<f32>),
             in_collision_result.as_ref_expect("in_collision_result"),
         ) as _
@@ -95,8 +95,8 @@ impl ContactListenerWrapper {
         io_settings: *mut JPC_ContactSettings,
     ) {
         (*(wrapper as *const Self)).inner.on_contact_added(
-            in_body1.as_ref_expect("in_body1"),
-            in_body2.as_ref_expect("in_body2"),
+            in_body1.cast::<Body>().as_ref_expect("in_body1"),
+            in_body2.cast::<Body>().as_ref_expect("in_body2"),
             in_manifold.as_ref_expect("in_manifold"),
             io_settings.as_mut_expect("io_settings"),
         )
@@ -110,8 +110,8 @@ impl ContactListenerWrapper {
         io_settings: *mut JPC_ContactSettings,
     ) {
         (*(wrapper as *const Self)).inner.on_contact_persisted(
-            in_body1.as_ref_expect("in_body1"),
-            in_body2.as_ref_expect("in_body2"),
+            in_body1.cast::<Body>().as_ref_expect("in_body1"),
+            in_body2.cast::<Body>().as_ref_expect("in_body2"),
             in_manifold.as_ref_expect("in_manifold"),
             io_settings.as_mut_expect("io_settings"),
         )

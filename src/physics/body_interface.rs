@@ -19,7 +19,7 @@ impl<'a> BodyInterface<'a> {
             if body_id.is_null() {
                 None
             } else {
-                Some(body_id)
+                Some(body_id.cast())
             }
         }
     }
@@ -30,34 +30,34 @@ impl<'a> BodyInterface<'a> {
         body_settings: &BodyCreationSettings,
     ) -> Option<*mut Body> {
         unsafe {
-            let body_id = jolt_sys::JPC_BodyInterface_CreateBodyWithID(
+            let body = jolt_sys::JPC_BodyInterface_CreateBodyWithID(
                 self.0,
-                body_id,
+                body_id.0,
                 &body_settings.to_jpc(),
             );
-            if body_id.is_null() {
+            if body.is_null() {
                 None
             } else {
-                Some(body_id)
+                Some(body.cast())
             }
         }
     }
 
     pub fn destroy_body(&self, body_id: BodyId) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_DestroyBody(self.0, body_id);
+            jolt_sys::JPC_BodyInterface_DestroyBody(self.0, body_id.0);
         }
     }
 
     pub fn add_body(&self, body_id: BodyId, activation: Activation) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddBody(self.0, body_id, activation as _);
+            jolt_sys::JPC_BodyInterface_AddBody(self.0, body_id.0, activation as _);
         }
     }
 
     pub fn remove_body(&self, body_id: BodyId) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_RemoveBody(self.0, body_id);
+            jolt_sys::JPC_BodyInterface_RemoveBody(self.0, body_id.0);
         }
     }
 
@@ -66,17 +66,17 @@ impl<'a> BodyInterface<'a> {
         body_settings: &BodyCreationSettings,
         activation: Activation,
     ) -> BodyId {
-        unsafe {
+        BodyId(unsafe {
             jolt_sys::JPC_BodyInterface_CreateAndAddBody(
                 self.0,
                 &body_settings.to_jpc(),
                 activation as _,
             )
-        }
+        })
     }
 
     pub fn is_added(&self, body_id: BodyId) -> bool {
-        unsafe { jolt_sys::JPC_BodyInterface_IsAdded(self.0, body_id) }
+        unsafe { jolt_sys::JPC_BodyInterface_IsAdded(self.0, body_id.0) }
     }
 
     pub fn set_linear_and_angular_velocity(
@@ -90,7 +90,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetLinearAndAngularVelocity(
                 self.0,
-                body_id,
+                body_id.0,
                 linear.as_ptr(),
                 angular.as_ptr(),
             );
@@ -103,7 +103,7 @@ impl<'a> BodyInterface<'a> {
             let mut angular = [0.; 3];
             jolt_sys::JPC_BodyInterface_GetLinearAndAngularVelocity(
                 self.0,
-                body_id,
+                body_id.0,
                 linear.as_mut_ptr(),
                 angular.as_mut_ptr(),
             );
@@ -115,14 +115,14 @@ impl<'a> BodyInterface<'a> {
     pub fn set_linear_velocity(&self, body_id: BodyId, velocity: impl Into<Vector3<f32>>) {
         let velocity = velocity.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_SetLinearVelocity(self.0, body_id, velocity.as_ptr());
+            jolt_sys::JPC_BodyInterface_SetLinearVelocity(self.0, body_id.0, velocity.as_ptr());
         }
     }
 
     pub fn linear_velocity(&self, body_id: BodyId) -> Vector3<f32> {
         unsafe {
             let mut result = [0.; 3];
-            jolt_sys::JPC_BodyInterface_GetLinearVelocity(self.0, body_id, result.as_mut_ptr());
+            jolt_sys::JPC_BodyInterface_GetLinearVelocity(self.0, body_id.0, result.as_mut_ptr());
 
             Vector3::from(result)
         }
@@ -131,7 +131,7 @@ impl<'a> BodyInterface<'a> {
     pub fn add_linear_velocity(&self, body_id: BodyId, velocity: impl Into<Vector3<f32>>) {
         let velocity = velocity.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddLinearVelocity(self.0, body_id, velocity.as_ptr());
+            jolt_sys::JPC_BodyInterface_AddLinearVelocity(self.0, body_id.0, velocity.as_ptr());
         }
     }
 
@@ -146,7 +146,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_AddLinearAndAngularVelocity(
                 self.0,
-                body_id,
+                body_id.0,
                 linear.as_ptr(),
                 angular.as_ptr(),
             );
@@ -156,14 +156,14 @@ impl<'a> BodyInterface<'a> {
     pub fn set_angular_velocity(&self, body_id: BodyId, velocity: impl Into<Vector3<f32>>) {
         let v = velocity.to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_SetAngularVelocity(self.0, body_id, v.as_ptr());
+            jolt_sys::JPC_BodyInterface_SetAngularVelocity(self.0, body_id.0, v.as_ptr());
         }
     }
 
     pub fn angular_velocity(&self, body_id: BodyId) -> Vector3<f32> {
         unsafe {
             let mut result = [0.; 3];
-            jolt_sys::JPC_BodyInterface_GetAngularVelocity(self.0, body_id, result.as_mut_ptr());
+            jolt_sys::JPC_BodyInterface_GetAngularVelocity(self.0, body_id.0, result.as_mut_ptr());
             Vector3::from(result)
         }
     }
@@ -177,7 +177,7 @@ impl<'a> BodyInterface<'a> {
             let mut result = [0.; 3];
             jolt_sys::JPC_BodyInterface_GetPointVelocity(
                 self.0,
-                body_id,
+                body_id.0,
                 point.into().as_ref().as_ptr(),
                 result.as_mut_ptr(),
             );
@@ -189,7 +189,7 @@ impl<'a> BodyInterface<'a> {
     pub fn position(&self, body_id: BodyId) -> Point3<f32> {
         unsafe {
             let mut result = [0.; 3];
-            jolt_sys::JPC_BodyInterface_GetPosition(self.0, body_id, result.as_mut_ptr());
+            jolt_sys::JPC_BodyInterface_GetPosition(self.0, body_id.0, result.as_mut_ptr());
             Point3::from(result)
         }
     }
@@ -204,7 +204,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetPosition(
                 self.0,
-                body_id,
+                body_id.0,
                 position.as_ptr(),
                 activation as _,
             );
@@ -216,7 +216,7 @@ impl<'a> BodyInterface<'a> {
             let mut result = [0.; 3];
             jolt_sys::JPC_BodyInterface_GetCenterOfMassPosition(
                 self.0,
-                body_id,
+                body_id.0,
                 result.as_mut_ptr(),
             );
 
@@ -227,7 +227,7 @@ impl<'a> BodyInterface<'a> {
     pub fn rotation(&self, body_id: BodyId) -> Quaternion<f32> {
         unsafe {
             let mut result = [0., 0., 0., 1.];
-            jolt_sys::JPC_BodyInterface_GetRotation(self.0, body_id, result.as_mut_ptr());
+            jolt_sys::JPC_BodyInterface_GetRotation(self.0, body_id.0, result.as_mut_ptr());
 
             Quaternion::from(result)
         }
@@ -242,7 +242,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetRotation(
                 self.0,
-                body_id,
+                body_id.0,
                 rotation.into().as_ref().as_ptr(),
                 activation as _,
             );
@@ -263,7 +263,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetPositionRotationAndVelocity(
                 self.0,
-                body_id,
+                body_id.0,
                 position.as_ptr(),
                 rotation.into().as_ref().as_ptr(),
                 linear_velocity.as_ptr(),
@@ -274,24 +274,24 @@ impl<'a> BodyInterface<'a> {
 
     pub fn activate_body(&self, body_id: BodyId) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_ActivateBody(self.0, body_id);
+            jolt_sys::JPC_BodyInterface_ActivateBody(self.0, body_id.0);
         }
     }
 
     pub fn deactivate_body(&self, body_id: BodyId) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_DeactivateBody(self.0, body_id);
+            jolt_sys::JPC_BodyInterface_DeactivateBody(self.0, body_id.0);
         }
     }
 
     pub fn is_active(&self, body_id: BodyId) -> bool {
-        unsafe { jolt_sys::JPC_BodyInterface_IsActive(self.0, body_id) }
+        unsafe { jolt_sys::JPC_BodyInterface_IsActive(self.0, body_id.0) }
     }
 
     pub fn add_force(&self, body_id: BodyId, force: impl Into<Vector3<f32>>) {
         let force = force.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddForce(self.0, body_id, force.as_ptr());
+            jolt_sys::JPC_BodyInterface_AddForce(self.0, body_id.0, force.as_ptr());
         }
     }
 
@@ -306,7 +306,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_AddForceAtPosition(
                 self.0,
-                body_id,
+                body_id.0,
                 force.as_ptr(),
                 position.as_ptr(),
             );
@@ -316,7 +316,7 @@ impl<'a> BodyInterface<'a> {
     pub fn add_torque(&self, body_id: BodyId, torque: impl Into<Vector3<f32>>) {
         let torque = torque.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddTorque(self.0, body_id, torque.as_ptr());
+            jolt_sys::JPC_BodyInterface_AddTorque(self.0, body_id.0, torque.as_ptr());
         }
     }
 
@@ -331,7 +331,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_AddForceAndTorque(
                 self.0,
-                body_id,
+                body_id.0,
                 force.as_ptr(),
                 torque.as_ptr(),
             );
@@ -341,7 +341,7 @@ impl<'a> BodyInterface<'a> {
     pub fn add_impulse(&self, body_id: BodyId, impulse: impl Into<Vector3<f32>>) {
         let impulse = impulse.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddImpulse(self.0, body_id, impulse.as_ptr());
+            jolt_sys::JPC_BodyInterface_AddImpulse(self.0, body_id.0, impulse.as_ptr());
         }
     }
 
@@ -356,7 +356,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_AddImpulseAtPosition(
                 self.0,
-                body_id,
+                body_id.0,
                 impulse.as_ptr(),
                 position.as_ptr(),
             );
@@ -366,7 +366,7 @@ impl<'a> BodyInterface<'a> {
     pub fn add_angular_impulse(&self, body_id: BodyId, impulse: impl Into<Vector3<f32>>) {
         let impulse = impulse.into().to_fixed_vec3();
         unsafe {
-            jolt_sys::JPC_BodyInterface_AddAngularImpulse(self.0, body_id, impulse.as_ptr());
+            jolt_sys::JPC_BodyInterface_AddAngularImpulse(self.0, body_id.0, impulse.as_ptr());
         }
     }
 
@@ -379,7 +379,7 @@ impl<'a> BodyInterface<'a> {
         unsafe {
             jolt_sys::JPC_BodyInterface_SetMotionType(
                 self.0,
-                body_id,
+                body_id.0,
                 motion_type as _,
                 activation as _,
             );
@@ -388,16 +388,16 @@ impl<'a> BodyInterface<'a> {
 
     // TODO(cohae): This is a bit scary, check the return values to cure my paranoia
     pub fn motion_type(&self, body_id: BodyId) -> MotionType {
-        unsafe { transmute(jolt_sys::JPC_BodyInterface_GetMotionType(self.0, body_id)) }
+        unsafe { transmute(jolt_sys::JPC_BodyInterface_GetMotionType(self.0, body_id.0)) }
     }
 
     pub fn set_object_layer(&self, body_id: BodyId, layer: ObjectLayer) {
         unsafe {
-            jolt_sys::JPC_BodyInterface_SetObjectLayer(self.0, body_id, layer);
+            jolt_sys::JPC_BodyInterface_SetObjectLayer(self.0, body_id.0, layer);
         }
     }
 
     pub fn object_layer(&self, body_id: BodyId) -> ObjectLayer {
-        unsafe { jolt_sys::JPC_BodyInterface_GetObjectLayer(self.0, body_id) }
+        unsafe { jolt_sys::JPC_BodyInterface_GetObjectLayer(self.0, body_id.0) }
     }
 }

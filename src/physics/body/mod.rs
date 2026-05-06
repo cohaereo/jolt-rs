@@ -16,8 +16,12 @@ pub use contact_listener::*;
 pub use creation_settings::*;
 pub use mass_properties::*;
 
-pub type BodyId = jolt_sys::JPC_BodyID;
-pub type Body = jolt_sys::JPC_Body;
+#[repr(transparent)]
+#[derive(Copy, Clone, Debug, Default, Hash, Eq, PartialEq)]
+pub struct BodyId(pub(crate) jolt_sys::JPC_BodyID);
+
+#[repr(transparent)]
+pub struct Body(pub(crate) jolt_sys::JPC_Body);
 
 #[repr(u8)]
 #[derive(Copy, Clone)]
