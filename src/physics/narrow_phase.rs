@@ -2,10 +2,10 @@ use std::{marker::PhantomData, mem::MaybeUninit};
 
 use mint::{Point3, Vector3};
 
-use crate::Vec3Ext;
+use crate::{Real, Vec3Ext};
 
 pub struct Ray {
-    origin: Point3<f32>,
+    origin: Point3<Real>,
     direction: Vector3<f32>,
 }
 
