@@ -33,8 +33,8 @@ fn main() {
         "cargo:rustc-link-search=native={}",
         dst.join("build/").display()
     );
-    println!("cargo:rustc-link-lib=Jolt");
     println!("cargo:rustc-link-lib=JoltC");
+    println!("cargo:rustc-link-lib=Jolt");
 
     let bindings = bindgen::Builder::default()
         .header("JoltC/JoltPhysicsC.h")
