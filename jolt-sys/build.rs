@@ -16,10 +16,20 @@ fn main() {
         }
     };
 
+    let enable_debug_renderer = env::var("CARGO_FEATURE_DEBUG_RENDERER").is_ok();
+
     let dst = cfg
         .define("ENABLE_ALL_WARNINGS", "OFF")
         .define("USE_STATIC_MSVC_RUNTIME_LIBRARY", "OFF")
         .define("INTERPROCEDURAL_OPTIMIZATION", "OFF")
+        .define(
+            "DEBUG_RENDERER_IN_DISTRIBUTION",
+            if enable_debug_renderer { "ON" } else { "OFF" },
+        )
+        .define(
+            "DEBUG_RENDERER_IN_DEBUG_AND_RELEASE",
+            if enable_debug_renderer { "ON" } else { "OFF" },
+        )
         // .build_target("JoltC")
         .profile(profile)
         .build_target("JoltC")
@@ -36,9 +46,15 @@ fn main() {
     println!("cargo:rustc-link-lib=JoltC");
     println!("cargo:rustc-link-lib=Jolt");
 
-    let bindings = bindgen::Builder::default()
+    let mut bindgen = bindgen::Builder::default()
         .header("JoltC/JoltPhysicsC.h")
-        .allowlist_item("JPC_+.*")
+        .allowlist_item("JPC_+.*");
+
+    if enable_debug_renderer {
+        bindgen = bindgen.clang_args(["-D", "JPH_DEBUG_RENDERER=1"]);
+    }
+
+    let bindings = bindgen
         .default_enum_style(bindgen::EnumVariation::Consts)
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()

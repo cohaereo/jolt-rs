@@ -8,6 +8,9 @@
       "initialization_options": {
         "check": {
           "command": "check"
+        },
+        "cargo": {
+          "features": "all"
         }
       }
     }
