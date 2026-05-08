@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use jolt_sys::{
     JPC_EMotionQuality_JPC_MOTION_QUALITY_DISCRETE,
     JPC_EMotionQuality_JPC_MOTION_QUALITY_LINEAR_CAST, JPC_EMotionType_JPC_MOTION_TYPE_DYNAMIC,
@@ -22,6 +24,20 @@ pub struct BodyId(pub(crate) jolt_sys::JPC_BodyID);
 
 #[repr(transparent)]
 pub struct Body(pub(crate) jolt_sys::JPC_Body);
+
+impl Body {
+    pub fn id(&self) -> BodyId {
+        BodyId(self.0.id)
+    }
+}
+
+impl Deref for Body {
+    type Target = jolt_sys::JPC_Body;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 #[repr(u8)]
 #[derive(Copy, Clone)]

@@ -177,7 +177,7 @@ fn main() {
         .expect("Failed to create body"); // Note that if we run out of bodies this can return None
 
     // Add it to the world
-    body_interface.add_body(unsafe { (*floor).id }, jolt::Activation::DontActivate);
+    body_interface.add_body(unsafe { (*floor).id() }, jolt::Activation::DontActivate);
 
     // Now create a dynamic body to bounce on the floor
     // Note that this uses the shorthand version of creating and adding a body to the world
