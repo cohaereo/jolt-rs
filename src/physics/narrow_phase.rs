@@ -5,8 +5,8 @@ use mint::{Point3, Vector3};
 use crate::{BodyId, Real, SubShapeId, Vec3Ext};
 
 pub struct Ray {
-    origin: Point3<Real>,
-    direction: Vector3<f32>,
+    pub origin: Point3<Real>,
+    pub direction: Vector3<f32>,
 }
 
 pub struct RayCastResult {
