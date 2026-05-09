@@ -19,8 +19,14 @@ pub use creation_settings::*;
 pub use mass_properties::*;
 
 #[repr(transparent)]
-#[derive(Copy, Clone, Debug, Default, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct BodyId(pub(crate) jolt_sys::JPC_BodyID);
+
+impl Default for BodyId {
+    fn default() -> Self {
+        Self(u32::MAX)
+    }
+}
 
 #[repr(transparent)]
 pub struct Body(pub(crate) jolt_sys::JPC_Body);

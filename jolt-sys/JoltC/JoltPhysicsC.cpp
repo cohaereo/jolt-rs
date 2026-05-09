@@ -2264,6 +2264,12 @@ JPC_BodyInterface_SetObjectLayer(JPC_BodyInterface *in_iface, JPC_BodyID in_body
     toJph(in_iface)->SetObjectLayer(toJph(in_body_id), static_cast<JPH::ObjectLayer>(in_layer));
 }
 //--------------------------------------------------------------------------------------------------
+JPC_API void
+JPC_BodyInterface_SetShape(JPC_BodyInterface *in_iface, JPC_BodyID in_body_id, const JPC_Shape *in_shape, bool in_update_mass_properties, JPC_Activation in_activation)
+{
+    toJph(in_iface)->SetShape(toJph(in_body_id), toJph(in_shape), in_update_mass_properties, static_cast<JPH::EActivation>(in_activation));
+}
+//--------------------------------------------------------------------------------------------------
 //
 // JPC_Body
 //

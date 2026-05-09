@@ -1,5 +1,5 @@
 use crate::{
-    core::Vec3Ext, Activation, Body, BodyCreationSettings, BodyId, MotionType, ObjectLayer,
+    core::Vec3Ext, Activation, Body, BodyCreationSettings, BodyId, MotionType, ObjectLayer, Shape,
 };
 use mint::{Point3, Quaternion, Vector3};
 use std::{marker::PhantomData, mem::transmute};
@@ -399,5 +399,23 @@ impl<'a> BodyInterface<'a> {
 
     pub fn object_layer(&self, body_id: BodyId) -> ObjectLayer {
         unsafe { jolt_sys::JPC_BodyInterface_GetObjectLayer(self.0, body_id.0) }
+    }
+
+    pub fn set_shape(
+        &self,
+        body_id: BodyId,
+        shape: &Shape,
+        update_mass_properties: bool,
+        activation: Activation,
+    ) {
+        unsafe {
+            jolt_sys::JPC_BodyInterface_SetShape(
+                self.0,
+                body_id.0,
+                shape.as_raw(),
+                update_mass_properties,
+                activation as _,
+            );
+        }
     }
 }
