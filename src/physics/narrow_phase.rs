@@ -30,13 +30,17 @@ impl<'a> NarrowPhaseQuery<'a> {
             direction: ray.direction.to_fixed_vec3(),
         };
 
-        let mut result = MaybeUninit::<jolt_sys::JPC_RayCastResult>::zeroed();
+        let mut result = jolt_sys::JPC_RayCastResult {
+            body_id: u32::MAX,
+            fraction: 1.0 + f32::EPSILON,
+            sub_shape_id: u32::MAX,
+        };
 
         let hit = unsafe {
             jolt_sys::JPC_NarrowPhaseQuery_CastRay(
                 self.0,
                 &raw const ray,
-                result.as_mut_ptr(),
+                &raw mut result,
                 std::ptr::null(),
                 std::ptr::null(),
                 std::ptr::null(),
@@ -44,11 +48,10 @@ impl<'a> NarrowPhaseQuery<'a> {
         };
 
         hit.then_some({
-            let raw_result = unsafe { result.assume_init() };
             RayCastResult {
-                body_id: BodyId(raw_result.body_id),
-                fraction: raw_result.fraction,
-                sub_shape_id: SubShapeId(raw_result.sub_shape_id),
+                body_id: BodyId(result.body_id),
+                fraction: result.fraction,
+                sub_shape_id: SubShapeId(result.sub_shape_id),
             }
         })
     }
