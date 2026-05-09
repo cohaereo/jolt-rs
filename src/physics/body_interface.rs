@@ -418,4 +418,14 @@ impl<'a> BodyInterface<'a> {
             );
         }
     }
+
+    pub fn gravity_factor(&self, body_id: BodyId) -> f32 {
+        unsafe { jolt_sys::JPC_BodyInterface_GetGravityFactor(self.0, body_id.0) }
+    }
+
+    pub fn set_gravity_factor(&self, body_id: BodyId, gravity_factor: f32) {
+        unsafe {
+            jolt_sys::JPC_BodyInterface_SetGravityFactor(self.0, body_id.0, gravity_factor);
+        }
+    }
 }

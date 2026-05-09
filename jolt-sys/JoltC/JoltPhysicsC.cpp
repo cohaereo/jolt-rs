@@ -2270,6 +2270,18 @@ JPC_BodyInterface_SetShape(JPC_BodyInterface *in_iface, JPC_BodyID in_body_id, c
     toJph(in_iface)->SetShape(toJph(in_body_id), toJph(in_shape), in_update_mass_properties, static_cast<JPH::EActivation>(in_activation));
 }
 //--------------------------------------------------------------------------------------------------
+JPC_API float
+JPC_BodyInterface_GetGravityFactor(JPC_BodyInterface *in_iface, JPC_BodyID in_body_id)
+{
+    return toJph(in_iface)->GetGravityFactor(toJph(in_body_id));
+}
+//--------------------------------------------------------------------------------------------------
+JPC_API void
+JPC_BodyInterface_SetGravityFactor(JPC_BodyInterface *in_iface, JPC_BodyID in_body_id, float in_gravity_factor)
+{
+    toJph(in_iface)->SetGravityFactor(toJph(in_body_id), in_gravity_factor);
+}
+//--------------------------------------------------------------------------------------------------
 //
 // JPC_Body
 //
