@@ -9,7 +9,7 @@ mod scaled;
 mod shape_settings;
 mod sphere;
 
-use std::ptr::NonNull;
+use std::{fmt::Debug, ptr::NonNull};
 
 pub use capsule::*;
 pub use compound::*;
@@ -24,7 +24,43 @@ pub use scaled::*;
 pub use shape_settings::*;
 pub use sphere::*;
 
-pub type SubShapeIDPair = jolt_sys::JPC_SubShapeIDPair;
+use crate::BodyId;
+
+#[repr(transparent)]
+pub struct SubShapeIdPair(jolt_sys::JPC_SubShapeIDPair);
+
+impl SubShapeIdPair {
+    pub(crate) fn from_raw_ptr(inner: *const jolt_sys::JPC_SubShapeIDPair) -> *const Self {
+        inner as *const Self
+    }
+
+    pub fn body1_id(&self) -> BodyId {
+        BodyId(self.0.first.body_id)
+    }
+
+    pub fn subshape1_id(&self) -> crate::SubShapeId {
+        crate::SubShapeId(self.0.first.sub_shape_id)
+    }
+
+    pub fn body2_id(&self) -> BodyId {
+        BodyId(self.0.second.body_id)
+    }
+
+    pub fn subshape2_id(&self) -> crate::SubShapeId {
+        crate::SubShapeId(self.0.second.sub_shape_id)
+    }
+}
+
+impl Debug for SubShapeIdPair {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SubShapeIdPair")
+            .field("body1", &self.body1_id())
+            .field("subshape1", &self.subshape1_id())
+            .field("body2", &self.body2_id())
+            .field("subshape2", &self.subshape2_id())
+            .finish()
+    }
+}
 
 pub struct Shape(NonNull<jolt_sys::JPC_Shape>);
 

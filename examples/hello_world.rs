@@ -76,8 +76,8 @@ impl jolt::ContactListener for MyContactListener {
         println!("A contact was persisted");
     }
 
-    fn on_contact_removed(&self, _sub_shape_pair: &jolt::SubShapeIDPair) {
-        println!("A contact was removed");
+    fn on_contact_removed(&self, sub_shape_pair: &jolt::SubShapeIdPair) {
+        println!("A contact was removed ({sub_shape_pair:?})");
     }
 }
 

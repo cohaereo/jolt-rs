@@ -1,6 +1,6 @@
 use crate::{
     util::{PointerConstExt, PointerMutExt},
-    Body, CollideShapeResult, ContactManifold, ContactSettings, Real, SubShapeIDPair,
+    Body, CollideShapeResult, ContactManifold, ContactSettings, Real, SubShapeIdPair,
 };
 use jolt_sys::{
     JPC_Body, JPC_CollideShapeResult, JPC_ContactManifold, JPC_ContactSettings, JPC_SubShapeIDPair,
@@ -48,7 +48,7 @@ pub trait ContactListener {
         io_settings: &mut ContactSettings,
     );
 
-    fn on_contact_removed(&self, sub_shape_pair: &SubShapeIDPair);
+    fn on_contact_removed(&self, sub_shape_pair: &SubShapeIdPair);
 }
 
 #[repr(C)]
@@ -121,8 +121,10 @@ impl ContactListenerWrapper {
         wrapper: *mut c_void,
         in_sub_shape_pair: *const JPC_SubShapeIDPair,
     ) {
+        let sub_shape_pair = SubShapeIdPair::from_raw_ptr(in_sub_shape_pair);
+
         (*(wrapper as *const Self))
             .inner
-            .on_contact_removed(in_sub_shape_pair.as_ref_expect("in_sub_shape_pair"))
+            .on_contact_removed(sub_shape_pair.as_ref_expect("in_sub_shape_pair"));
     }
 }

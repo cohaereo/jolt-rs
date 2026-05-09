@@ -29,6 +29,16 @@ impl Default for BodyId {
 }
 
 #[repr(transparent)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct SubShapeId(pub(crate) jolt_sys::JPC_SubShapeID);
+
+impl Default for SubShapeId {
+    fn default() -> Self {
+        Self(u32::MAX)
+    }
+}
+
+#[repr(transparent)]
 pub struct Body(pub(crate) jolt_sys::JPC_Body);
 
 impl Body {
