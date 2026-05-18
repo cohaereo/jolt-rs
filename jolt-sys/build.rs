@@ -20,7 +20,7 @@ fn main() {
 
     let dst = cfg
         .define("ENABLE_ALL_WARNINGS", "OFF")
-        .define("USE_STATIC_MSVC_RUNTIME_LIBRARY", "OFF")
+        .define("USE_STATIC_MSVC_RUNTIME_LIBRARY", "ON")
         .define("INTERPROCEDURAL_OPTIMIZATION", "OFF")
         .define(
             "DEBUG_RENDERER_IN_DISTRIBUTION",
